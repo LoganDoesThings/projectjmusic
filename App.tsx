@@ -7,7 +7,6 @@ import {
   TouchableOpacity,
   SafeAreaView,
   StatusBar,
-  Dimensions,
   Modal,
   Alert,
   ScrollView,
@@ -17,16 +16,8 @@ import * as DocumentPicker from 'expo-document-picker';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import Slider from '@react-native-community/slider';
 import { 
-  Play, 
-  Pause, 
-  SkipForward, 
-  SkipBack, 
-  Repeat, 
-  Shuffle, 
   Plus, 
   Music,
-  ChevronDown,
-  Trash2,
   Clock,
   Folder,
   ArrowLeft,
@@ -35,17 +26,14 @@ import {
   Moon
 } from 'lucide-react-native';
 
-const { width } = Dimensions.get('window');
-
-interface Track {
-  id: string;
-  name: string;
-  uri: string;
-  isFavorite?: boolean;
-  folder: string;
-}
-
-type ViewMode = 'all' | 'folders' | 'folder-detail';
+// New Imports
+import { Track, ViewMode, RepeatMode } from './src/types';
+import { getColors } from './src/theme/colors';
+import { TrackItem } from './src/components/TrackItem';
+import { MiniPlayer } from './src/components/MiniPlayer';
+import { PlayerModal } from './src/components/PlayerModal';
+import { FXModal } from './src/components/FXModal';
+import { SleepModal } from './src/components/SleepModal';
 
 export default function App() {
   const [tracks, setTracks] = useState<Track[]>([]);
@@ -59,7 +47,7 @@ export default function App() {
   const [sound, setSound] = useState<Audio.Sound | null>(null);
   const [isModalVisible, setIsModalVisible] = useState(false);
   const [isShuffle, setIsShuffle] = useState(false);
-  const [repeatMode, setRepeatMode] = useState<'none' | 'one' | 'all'>('none');
+  const [repeatMode, setRepeatMode] = useState<RepeatMode>('none');
   const [playbackPosition, setPlaybackPosition] = useState(0);
   const [playbackDuration, setPlaybackDuration] = useState(0);
   const [isSeeking, setIsSeeking] = useState(false);
@@ -71,16 +59,7 @@ export default function App() {
   const [isSleepModalVisible, setIsSleepModalVisible] = useState(false);
   const timerRef = useRef<NodeJS.Timeout | null>(null);
 
-  const colors = {
-    bg: isDarkMode ? '#121212' : '#F5F5F7',
-    surface: isDarkMode ? '#1E1E1E' : '#FFFFFF',
-    text: isDarkMode ? '#FFFFFF' : '#000000',
-    subtext: isDarkMode ? '#AAAAAA' : '#666666',
-    primary: '#1DB954',
-    border: isDarkMode ? '#333333' : '#E0E0E0',
-    card: isDarkMode ? '#282828' : '#FFFFFF',
-    overlay: isDarkMode ? 'rgba(0,0,0,0.9)' : 'rgba(255,255,255,0.95)',
-  };
+  const colors = getColors(isDarkMode);
 
   useEffect(() => {
     loadData();
@@ -217,8 +196,27 @@ export default function App() {
     return `${mins}:${secs < 10 ? '0' : ''}${secs}`;
   };
 
+  const cycleRepeatMode = () => {
+    const modes: RepeatMode[] = ['none', 'one', 'all'];
+    setRepeatMode(modes[(modes.indexOf(repeatMode) + 1) % modes.length]);
+  };
+
+  const toggleFavorite = (id: string) => {
+    const updated = tracks.map(t => 
+      t.id === id ? { ...t, isFavorite: !t.isFavorite } : t
+    );
+    setTracks(updated);
+    saveData(updated);
+  };
+
   const currentTrack = currentTrackIndex !== null ? tracks[currentTrackIndex] : null;
-  const filteredTracks = selectedFolder ? tracks.filter(t => t.folder === selectedFolder) : tracks;
+  
+  let filteredTracks = tracks;
+  if (currentView === 'folder-detail' && selectedFolder) {
+    filteredTracks = tracks.filter(t => t.folder === selectedFolder);
+  } else if (currentView === 'favorites') {
+    filteredTracks = tracks.filter(t => t.isFavorite);
+  }
 
   return (
     <SafeAreaView style={[styles.container, { backgroundColor: colors.bg }]}>
@@ -232,7 +230,9 @@ export default function App() {
         ) : (
           <View>
             <Text style={[styles.title, { color: colors.text }]}>JMusic</Text>
-            <Text style={[styles.subtitle, { color: colors.subtext }]}>{tracks.length} songs</Text>
+            <Text style={[styles.subtitle, { color: colors.subtext }]}>
+              {currentView === 'favorites' ? filteredTracks.length : tracks.length} songs
+            </Text>
           </View>
         )}
         <View style={styles.headerIcons}>
@@ -252,9 +252,15 @@ export default function App() {
       </View>
 
       <View style={styles.tabs}>
-        {['all', 'folders'].map((view) => (
-          <TouchableOpacity key={view} style={[styles.tab, currentView === view && { borderBottomColor: colors.primary, borderBottomWidth: 2 }]} onPress={() => { setCurrentView(view as any); setSelectedFolder(null); }}>
-            <Text style={[styles.tabText, { color: currentView === view ? colors.text : colors.subtext }]}>{view === 'all' ? 'All Songs' : 'Folders'}</Text>
+        {(['all', 'folders', 'favorites'] as const).map((view) => (
+          <TouchableOpacity 
+            key={view} 
+            style={[styles.tab, currentView === view && { borderBottomColor: colors.primary, borderBottomWidth: 2 }]} 
+            onPress={() => { setCurrentView(view); setSelectedFolder(null); }}
+          >
+            <Text style={[styles.tabText, { color: currentView === view ? colors.text : colors.subtext }]}>
+              {view.charAt(0).toUpperCase() + view.slice(1)}
+            </Text>
           </TouchableOpacity>
         ))}
       </View>
@@ -266,18 +272,27 @@ export default function App() {
             keyExtractor={(item) => item.id}
             contentContainerStyle={styles.listContent}
             renderItem={({ item, index }) => (
-              <TouchableOpacity style={[styles.trackItem, currentTrack?.id === item.id && { backgroundColor: colors.surface }]} onPress={() => playTrack(index, filteredTracks)}>
-                <View style={[styles.trackIconContainer, { backgroundColor: colors.border }]}>
-                  <Music color={currentTrack?.id === item.id ? colors.primary : colors.text} size={22} />
-                </View>
-                <View style={{ flex: 1 }}>
-                  <Text style={[styles.trackName, { color: currentTrack?.id === item.id ? colors.primary : colors.text }]} numberOfLines={1}>{item.name}</Text>
-                  <Text style={[styles.trackFolder, { color: colors.subtext }]}>{item.folder}</Text>
-                </View>
-                <TouchableOpacity onPress={() => { const updated = tracks.filter(t => t.id !== item.id); setTracks(updated); saveData(updated); }}><Trash2 color={colors.subtext} size={18} /></TouchableOpacity>
-              </TouchableOpacity>
+              <TrackItem
+                item={item}
+                isCurrent={currentTrack?.id === item.id}
+                colors={colors}
+                onPress={() => playTrack(index, filteredTracks)}
+                onDelete={() => {
+                  const updated = tracks.filter(t => t.id !== item.id);
+                  setTracks(updated);
+                  saveData(updated);
+                }}
+                onToggleFavorite={() => toggleFavorite(item.id)}
+              />
             )}
-            ListEmptyComponent={<View style={styles.emptyContainer}><Music color={colors.border} size={80} /><Text style={{ color: colors.subtext, marginTop: 10 }}>Empty Library</Text></View>}
+            ListEmptyComponent={
+              <View style={styles.emptyContainer}>
+                <Music color={colors.border} size={80} />
+                <Text style={{ color: colors.subtext, marginTop: 10 }}>
+                  {currentView === 'favorites' ? 'No favorites yet' : 'Empty Library'}
+                </Text>
+              </View>
+            }
           />
         ) : (
           <ScrollView contentContainerStyle={styles.listContent}>
@@ -295,74 +310,60 @@ export default function App() {
       </View>
 
       {currentTrack && (
-        <TouchableOpacity style={[styles.miniPlayer, { backgroundColor: colors.surface, borderTopColor: colors.border, borderTopWidth: 1 }]} onPress={() => setIsModalVisible(true)} activeOpacity={0.9}>
-          <View style={{ flex: 1 }}>
-            <Text style={{ color: colors.text, fontWeight: 'bold' }} numberOfLines={1}>{currentTrack.name}</Text>
-            <Text style={{ color: colors.primary, fontSize: 11 }}>{currentTrack.folder}</Text>
-          </View>
-          <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-            <TouchableOpacity onPress={togglePlayPause}>{isPlaying ? <Pause color={colors.text} size={28} /> : <Play color={colors.text} size={28} />}</TouchableOpacity>
-            <TouchableOpacity onPress={skipNext} style={{ marginLeft: 15 }}><SkipForward color={colors.text} size={28} /></TouchableOpacity>
-          </View>
-        </TouchableOpacity>
+        <MiniPlayer
+          currentTrack={currentTrack}
+          isPlaying={isPlaying}
+          colors={colors}
+          onPress={() => setIsModalVisible(true)}
+          onTogglePlay={togglePlayPause}
+          onSkipNext={skipNext}
+        />
       )}
 
-      <Modal visible={isModalVisible} animationType="slide">
-        <SafeAreaView style={[styles.modalContainer, { backgroundColor: colors.bg }]}>
-          <View style={styles.modalHeader}>
-            <TouchableOpacity onPress={() => setIsModalVisible(false)}><ChevronDown color={colors.text} size={32} /></TouchableOpacity>
-            <Text style={[styles.nowPlayingText, { color: colors.text }]}>NOW PLAYING</Text>
-            <TouchableOpacity onPress={() => setIsFXModalVisible(true)}><Activity color={colors.text} size={24} /></TouchableOpacity>
-          </View>
-          <View style={styles.albumArtContainer}>
-            <View style={[styles.largeAlbumArt, { backgroundColor: colors.surface }]}><Music color={colors.border} size={120} /></View>
-          </View>
-          <View style={{ paddingHorizontal: 30, marginBottom: 20 }}>
-            <Text style={[styles.modalTrackName, { color: colors.text }]}>{currentTrack?.name}</Text>
-            <Text style={{ color: colors.primary, fontSize: 18, marginTop: 5 }}>{currentTrack?.folder}</Text>
-          </View>
-          <View style={{ paddingHorizontal: 20, marginBottom: 30 }}>
-            <Slider style={{ width: '100%', height: 40 }} minimumValue={0} maximumValue={playbackDuration} value={playbackPosition} minimumTrackTintColor={colors.primary} maximumTrackTintColor={colors.border} thumbTintColor={colors.primary} onSlidingComplete={async (v) => { if (sound) await sound.setPositionAsync(v); setPlaybackPosition(v); setIsSeeking(false); }} onValueChange={() => setIsSeeking(true)} />
-            <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}><Text style={{ color: colors.subtext }}>{formatTime(playbackPosition)}</Text><Text style={{ color: colors.subtext }}>{formatTime(playbackDuration)}</Text></View>
-          </View>
-          <View style={styles.mainControls}>
-            <TouchableOpacity onPress={() => setIsShuffle(!isShuffle)}><Shuffle color={isShuffle ? colors.primary : colors.subtext} size={24} /></TouchableOpacity>
-            <TouchableOpacity onPress={skipBack}><SkipBack color={colors.text} size={40} fill={colors.text} /></TouchableOpacity>
-            <TouchableOpacity style={[styles.playPauseLarge, { backgroundColor: colors.text }]} onPress={togglePlayPause}>{isPlaying ? <Pause color={colors.bg} size={40} fill={colors.bg} /> : <Play color={colors.bg} size={40} fill={colors.bg} />}</TouchableOpacity>
-            <TouchableOpacity onPress={skipNext}><SkipForward color={colors.text} size={40} fill={colors.text} /></TouchableOpacity>
-            <TouchableOpacity onPress={() => { const modes: any[] = ['none', 'one', 'all']; setRepeatMode(modes[(modes.indexOf(repeatMode) + 1) % modes.length]); }}><Repeat color={repeatMode !== 'none' ? colors.primary : colors.subtext} size={24} /></TouchableOpacity>
-          </View>
-        </SafeAreaView>
-      </Modal>
+      <PlayerModal
+        visible={isModalVisible}
+        onClose={() => setIsModalVisible(false)}
+        currentTrack={currentTrack}
+        isPlaying={isPlaying}
+        onTogglePlay={togglePlayPause}
+        onSkipNext={skipNext}
+        onSkipBack={skipBack}
+        playbackPosition={playbackPosition}
+        playbackDuration={playbackDuration}
+        onSeek={async (v) => { if (sound) await sound.setPositionAsync(v); setPlaybackPosition(v); setIsSeeking(false); }}
+        onSeeking={setIsSeeking}
+        isShuffle={isShuffle}
+        onToggleShuffle={() => setIsShuffle(!isShuffle)}
+        repeatMode={repeatMode}
+        onCycleRepeat={cycleRepeatMode}
+        onOpenFX={() => setIsFXModalVisible(true)}
+        onToggleFavorite={() => currentTrack && toggleFavorite(currentTrack.id)}
+        colors={colors}
+        formatTime={formatTime}
+      />
 
-      <Modal visible={isFXModalVisible} transparent animationType="fade">
-        <View style={[styles.modalOverlay, { backgroundColor: colors.overlay }]}>
-          <View style={[styles.fxContent, { backgroundColor: colors.surface }]}>
-            <View style={styles.fxHeader}><Text style={[styles.fxTitle, { color: colors.text }]}>Audio FX</Text><TouchableOpacity onPress={() => setIsFXModalVisible(false)}><Plus color={colors.text} size={24} style={{ transform: [{ rotate: '45deg' }] }} /></TouchableOpacity></View>
-            <Text style={{ color: colors.text, marginTop: 10 }}>Speed: {playbackSpeed.toFixed(1)}x</Text>
-            <Slider style={{ width: '100%', height: 40 }} minimumValue={0.5} maximumValue={2.0} value={playbackSpeed} minimumTrackTintColor={colors.primary} onValueChange={async (v) => { setPlaybackSpeed(v); if (sound) await sound.setRateAsync(v, true); }} />
-            <Text style={{ color: colors.text, marginTop: 10 }}>Pitch: {playbackPitch.toFixed(1)}x</Text>
-            <Slider style={{ width: '100%', height: 40 }} minimumValue={0.5} maximumValue={2.0} value={playbackPitch} minimumTrackTintColor={colors.primary} onValueChange={(v) => setPlaybackPitch(v)} />
-            <View style={{ flexDirection: 'row', justifyContent: 'space-around', height: 100, marginTop: 20 }}>
-              {[1, 2, 3, 4, 5].map(i => <View key={i} style={{ width: 40, height: '100%', backgroundColor: colors.border, borderRadius: 5, justifyContent: 'flex-end' }}><View style={{ height: '50%', backgroundColor: colors.primary, borderRadius: 5 }} /></View>)}
-            </View>
-            <Text style={{ color: colors.subtext, textAlign: 'center', marginTop: 15, fontSize: 10 }}>5-Band Equalizer (Simulation)</Text>
-          </View>
-        </View>
-      </Modal>
+      <FXModal
+        visible={isFXModalVisible}
+        onClose={() => setIsFXModalVisible(false)}
+        playbackSpeed={playbackSpeed}
+        onSpeedChange={async (v) => {
+          setPlaybackSpeed(v);
+          if (sound) await sound.setRateAsync(v, true);
+        }}
+        playbackPitch={playbackPitch}
+        onPitchChange={(v) => setPlaybackPitch(v)}
+        colors={colors}
+      />
 
-      <Modal visible={isSleepModalVisible} transparent animationType="fade">
-        <TouchableOpacity style={[styles.modalOverlay, { backgroundColor: colors.overlay }]} onPress={() => setIsSleepModalVisible(false)}>
-          <View style={[styles.fxContent, { backgroundColor: colors.surface }]}>
-            <Text style={[styles.fxTitle, { color: colors.text, textAlign: 'center', marginBottom: 20 }]}>Sleep Timer</Text>
-            {[10, 20, 30, 60].map(m => (
-              <TouchableOpacity key={m} style={{ padding: 15, borderBottomColor: colors.border, borderBottomWidth: 1 }} onPress={() => { setSleepTimerSeconds(m * 60); setIsSleepModalVisible(false); }}>
-                <Text style={{ color: colors.text, textAlign: 'center' }}>{m} Minutes</Text>
-              </TouchableOpacity>
-            ))}
-          </View>
-        </TouchableOpacity>
-      </Modal>
+      <SleepModal
+        visible={isSleepModalVisible}
+        onClose={() => setIsSleepModalVisible(false)}
+        onSetTimer={(m) => {
+          setSleepTimerSeconds(m * 60);
+          setIsSleepModalVisible(false);
+        }}
+        colors={colors}
+      />
     </SafeAreaView>
   );
 }
@@ -379,24 +380,8 @@ const styles = StyleSheet.create({
   tab: { marginRight: 25, paddingBottom: 8 },
   tabText: { fontSize: 16, fontWeight: 'bold' },
   listContent: { paddingBottom: 100 },
-  trackItem: { flexDirection: 'row', alignItems: 'center', padding: 12, marginHorizontal: 10, borderRadius: 12, marginBottom: 5 },
-  trackIconContainer: { width: 45, height: 45, borderRadius: 10, justifyContent: 'center', alignItems: 'center', marginRight: 15 },
-  trackName: { fontSize: 16, fontWeight: '600' },
-  trackFolder: { fontSize: 12, marginTop: 2 },
   folderItem: { flexDirection: 'row', alignItems: 'center', padding: 18, borderBottomWidth: 1 },
   folderName: { fontSize: 18, fontWeight: 'bold' },
   emptyContainer: { flex: 1, justifyContent: 'center', alignItems: 'center', marginTop: 120 },
-  miniPlayer: { position: 'absolute', bottom: 0, left: 0, right: 0, height: 80, flexDirection: 'row', alignItems: 'center', paddingHorizontal: 20, elevation: 20 },
-  modalContainer: { flex: 1 },
-  modalHeader: { padding: 20, flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
-  nowPlayingText: { fontSize: 12, fontWeight: 'bold', letterSpacing: 3 },
-  albumArtContainer: { flex: 1, justifyContent: 'center', alignItems: 'center' },
-  largeAlbumArt: { width: width * 0.75, height: width * 0.75, borderRadius: 30, justifyContent: 'center', alignItems: 'center', elevation: 25 },
-  modalTrackName: { fontSize: 26, fontWeight: 'bold' },
-  mainControls: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingHorizontal: 30, marginBottom: 40 },
-  playPauseLarge: { width: 80, height: 80, borderRadius: 40, justifyContent: 'center', alignItems: 'center', elevation: 15 },
   modalOverlay: { flex: 1, justifyContent: 'center', alignItems: 'center' },
-  fxContent: { width: '85%', borderRadius: 25, padding: 25, elevation: 20 },
-  fxHeader: { flexDirection: 'row', justifyContent: 'space-between', marginBottom: 15 },
-  fxTitle: { fontSize: 22, fontWeight: 'bold' }
 });
