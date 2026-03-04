@@ -6,7 +6,7 @@ import {
   TouchableOpacity, 
   SafeAreaView, 
   Modal, 
-  Dimensions 
+  useWindowDimensions 
 } from 'react-native';
 import { 
   Music, 
@@ -23,8 +23,6 @@ import {
 import Slider from '@react-native-community/slider';
 import { Track, RepeatMode } from '../types';
 import { Colors } from '../theme/colors';
-
-const { width } = Dimensions.get('window');
 
 interface PlayerModalProps {
   visible: boolean;
@@ -71,6 +69,9 @@ export const PlayerModal: React.FC<PlayerModalProps> = ({
   colors,
   formatTime,
 }) => {
+  const { width } = useWindowDimensions();
+  const artSize = width > 500 ? 350 : width * 0.75;
+
   return (
     <Modal visible={visible} animationType="slide">
       <SafeAreaView style={[styles.modalContainer, { backgroundColor: colors.bg }]}>
@@ -85,11 +86,11 @@ export const PlayerModal: React.FC<PlayerModalProps> = ({
         </View>
 
         <View style={styles.albumArtContainer}>
-          <View style={[styles.largeAlbumArt, { backgroundColor: colors.surface }]}>
+          <View style={[styles.largeAlbumArt, { backgroundColor: colors.surface, width: artSize, height: artSize }]}>
             {currentTrack?.artwork ? (
               <Image source={{ uri: currentTrack.artwork }} style={styles.fullArtwork} />
             ) : (
-              <Music color={colors.border} size={120} />
+              <Music color={colors.border} size={artSize * 0.4} />
             )}
           </View>
         </View>
@@ -164,8 +165,6 @@ const styles = StyleSheet.create({
   nowPlayingText: { fontSize: 12, fontWeight: 'bold', letterSpacing: 3 },
   albumArtContainer: { flex: 1, justifyContent: 'center', alignItems: 'center' },
   largeAlbumArt: { 
-    width: width * 0.75, 
-    height: width * 0.75, 
     borderRadius: 30, 
     justifyContent: 'center', 
     alignItems: 'center', 
