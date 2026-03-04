@@ -70,6 +70,14 @@ A high-performance, aesthetically pleasing music player built with **React Nativ
 
 ---
 
+## 🚀 Deployment
+
+### Web
+See [WEB.md](./WEB.md) for web hosting instructions.
+
+### Android (Google Play)
+See [RELEASE_ANDROID.md](./RELEASE_ANDROID.md) for a step-by-step guide on publishing to the Google Play Store.
+
 ## 📸 UI Gallery
 
 *(Add your screenshots here later to make it even fancier!)*
