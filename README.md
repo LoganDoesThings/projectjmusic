@@ -1,62 +1,81 @@
-# Project JMusic
+# 🎵 JMusic
 
-Project JMusic is a modern, feature-rich music player application built with **React Native** and **Expo**. It offers a clean interface for organizing and playing your local music collection.
+A high-performance, aesthetically pleasing music player built with **React Native** and **Expo**. Designed for the modern audiophile, **JMusic** combines professional-grade features with a minimalist, gesture-driven interface.
 
-## 🚀 Features
+---
 
-- **Audio Playback:** High-quality playback with controls for play/pause, next, previous, shuffle, and repeat modes.
-- **Track Management:** Easily add music tracks from your device using the integrated document picker.
-- **Folder Organization:** Organize your tracks into folders for better accessibility and navigation.
-- **Customizable FX:** Adjust playback speed and pitch to your preference.
-- **Sleep Timer:** Set a timer to automatically stop playback after a specified duration.
-- **Dynamic Themes:** Support for both Dark and Light modes to suit your visual style.
-- **Modern UI:** Built with `lucide-react-native` icons and a responsive design.
+<p align="center">
+  <img src="https://img.shields.io/badge/Status-Development-orange?style=for-the-badge" alt="Status" />
+  <img src="https://img.shields.io/badge/Platform-Android%20%7C%20iOS%20%7C%20Web-lightgrey?style=for-the-badge&logo=react" alt="Platform" />
+  <img src="https://img.shields.io/badge/Engine-Expo--AV-0081ff?style=for-the-badge" alt="Engine" />
+</p>
 
-## 🛠 Tech Stack
+---
 
-- **Framework:** [React Native](https://reactnative.dev/)
-- **Platform:** [Expo](https://expo.dev/)
-- **Audio Engine:** `expo-av`
-- **Storage:** `@react-native-async-storage/async-storage`
-- **Icons:** `lucide-react-native`
-- **Language:** TypeScript
+## ✨ Core Features
 
-## 📦 Getting Started
+### 🎧 Superior Playback Control
+- **Dynamic Store:** Powered by **Zustand** for ultra-smooth, synchronized playback states.
+- **Precision Audio:** Integrated with `expo-av` for high-fidelity sound.
+- **Smart Queue:** Advanced shuffle and repeat modes (`none`, `one`, `all`).
+
+### 📂 Professional Organization
+- **Native Navigation:** Fluid screen transitions powered by **React Navigation**.
+- **Metadata Engine:** Automatically extracts **Artist**, **Album**, and **Artwork** from your local files.
+- **Virtual Folders:** Categorize your library with custom folders for quick access.
+
+### 🛠 Audiophile Tools
+- **FX Suite:** Real-time adjustment of **Playback Speed** and **Pitch**.
+- **Sleep Timer:** Intelligent countdown to gracefully stop your music.
+- **Adaptive UI:** Seamlessly switch between **Obsidian Dark** and **Pure Light** modes.
+
+---
+
+## 🛠 Tech Stack & Architecture
+
+- **Runtime:** [Expo SDK 55](https://expo.dev/)
+- **UI Architecture:** React Native (TypeScript)
+- **State Management:** [Zustand](https://github.com/pmndrs/zustand)
+- **Navigation:** [React Navigation v6](https://reactnavigation.org/)
+- **Audio Processing:** `expo-av`
+- **Metadata Parsing:** `music-metadata-browser`
+- **Iconography:** `lucide-react-native`
+
+---
+
+## 🚀 Getting Started
 
 ### Prerequisites
 
-- Node.js (v18 or newer)
-- npm or yarn
-- Expo Go app on your mobile device (for testing)
+- **Node.js** (v18+)
+- **Expo Go** (Available on iOS/Android)
 
-### Installation
+### Installation & Launch
 
-1. Clone the repository:
+1. **Clone the repository:**
    ```bash
    git clone https://github.com/LoganDoesThings/projectjmusic.git
    cd projectjmusic
    ```
 
-2. Install dependencies:
+2. **Install dependencies:**
    ```bash
    npm install
    ```
 
-### Running the App
+3. **Fire it up:**
+   ```bash
+   npx expo start
+   ```
 
-Start the development server:
-```bash
-npm start
-```
-Use the Expo Go app to scan the QR code and run the app on your physical device.
+---
 
-### Building for Web
+## 📸 UI Gallery
 
-To export the app for web deployment:
-```bash
-npm run build
-```
+*(Add your screenshots here later to make it even fancier!)*
 
-## 📄 License
+---
 
-This project is private.
+<p align="center">
+  Crafted with ❤️ by <b>Logan</b>
+</p>
