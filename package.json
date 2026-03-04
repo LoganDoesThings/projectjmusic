@@ -12,14 +12,22 @@
   "dependencies": {
     "@react-native-async-storage/async-storage": "2.2.0",
     "@react-native-community/slider": "5.1.2",
+    "@react-navigation/bottom-tabs": "^7.15.5",
+    "@react-navigation/native": "^7.1.33",
+    "@react-navigation/native-stack": "^7.14.4",
+    "buffer": "^6.0.3",
     "expo": "~55.0.4",
     "expo-av": "^16.0.8",
     "expo-document-picker": "~55.0.8",
     "expo-file-system": "~55.0.10",
     "expo-status-bar": "~55.0.4",
     "lucide-react-native": "^0.576.0",
+    "music-metadata-browser": "^2.5.11",
     "react": "19.2.0",
-    "react-native": "0.83.2"
+    "react-native": "0.83.2",
+    "react-native-safe-area-context": "~5.6.2",
+    "react-native-screens": "~4.23.0",
+    "zustand": "^5.0.11"
   },
   "devDependencies": {
     "@types/react": "~19.2.2",

@@ -13,6 +13,8 @@ interface TrackItemProps {
   onToggleFavorite: () => void;
 }
 
+import { Image } from 'react-native';
+
 export const TrackItem: React.FC<TrackItemProps> = ({ 
   item, 
   isCurrent, 
@@ -27,7 +29,11 @@ export const TrackItem: React.FC<TrackItemProps> = ({
       onPress={onPress}
     >
       <View style={[styles.trackIconContainer, { backgroundColor: colors.border }]}>
-        <Music color={isCurrent ? colors.primary : colors.text} size={22} />
+        {item.artwork ? (
+          <Image source={{ uri: item.artwork }} style={styles.artwork} />
+        ) : (
+          <Music color={isCurrent ? colors.primary : colors.text} size={22} />
+        )}
       </View>
       <View style={{ flex: 1 }}>
         <Text 
@@ -36,7 +42,9 @@ export const TrackItem: React.FC<TrackItemProps> = ({
         >
           {item.name}
         </Text>
-        <Text style={[styles.trackFolder, { color: colors.subtext }]}>{item.folder}</Text>
+        <Text style={[styles.trackArtist, { color: colors.subtext }]} numberOfLines={1}>
+          {item.artist || 'Unknown Artist'} • {item.folder}
+        </Text>
       </View>
       <TouchableOpacity onPress={onToggleFavorite} style={{ marginRight: 15 }}>
         <Heart 
@@ -67,8 +75,10 @@ const styles = StyleSheet.create({
     borderRadius: 10, 
     justifyContent: 'center', 
     alignItems: 'center', 
-    marginRight: 15 
+    marginRight: 15,
+    overflow: 'hidden'
   },
+  artwork: { width: '100%', height: '100%' },
   trackName: { fontSize: 16, fontWeight: '600' },
-  trackFolder: { fontSize: 12, marginTop: 2 },
+  trackArtist: { fontSize: 12, marginTop: 2 },
 });

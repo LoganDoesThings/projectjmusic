@@ -48,6 +48,8 @@ interface PlayerModalProps {
   formatTime: (millis: number) => string;
 }
 
+import { Image } from 'react-native';
+
 export const PlayerModal: React.FC<PlayerModalProps> = ({
   visible,
   onClose,
@@ -84,14 +86,21 @@ export const PlayerModal: React.FC<PlayerModalProps> = ({
 
         <View style={styles.albumArtContainer}>
           <View style={[styles.largeAlbumArt, { backgroundColor: colors.surface }]}>
-            <Music color={colors.border} size={120} />
+            {currentTrack?.artwork ? (
+              <Image source={{ uri: currentTrack.artwork }} style={styles.fullArtwork} />
+            ) : (
+              <Music color={colors.border} size={120} />
+            )}
           </View>
         </View>
 
         <View style={{ paddingHorizontal: 30, marginBottom: 20, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
           <View style={{ flex: 1 }}>
-            <Text style={[styles.modalTrackName, { color: colors.text }]}>{currentTrack?.name}</Text>
-            <Text style={{ color: colors.primary, fontSize: 18, marginTop: 5 }}>{currentTrack?.folder}</Text>
+            <Text style={[styles.modalTrackName, { color: colors.text }]} numberOfLines={1}>{currentTrack?.name}</Text>
+            <Text style={{ color: colors.primary, fontSize: 18, marginTop: 5 }} numberOfLines={1}>
+              {currentTrack?.artist || 'Unknown Artist'}
+            </Text>
+            <Text style={{ color: colors.subtext, fontSize: 14, marginTop: 2 }}>{currentTrack?.folder}</Text>
           </View>
           <TouchableOpacity onPress={onToggleFavorite}>
             <Heart 
@@ -160,8 +169,10 @@ const styles = StyleSheet.create({
     borderRadius: 30, 
     justifyContent: 'center', 
     alignItems: 'center', 
-    elevation: 25 
+    elevation: 25,
+    overflow: 'hidden'
   },
+  fullArtwork: { width: '100%', height: '100%' },
   modalTrackName: { fontSize: 26, fontWeight: 'bold' },
   mainControls: { 
     flexDirection: 'row', 

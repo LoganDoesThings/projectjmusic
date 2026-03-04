@@ -4,6 +4,10 @@ export interface Track {
   uri: string;
   isFavorite?: boolean;
   folder: string;
+  artist?: string;
+  album?: string;
+  artwork?: string;
+  duration?: number;
 }
 
 export type ViewMode = 'all' | 'folders' | 'folder-detail' | 'favorites';

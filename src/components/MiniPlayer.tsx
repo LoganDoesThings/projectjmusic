@@ -13,6 +13,9 @@ interface MiniPlayerProps {
   onSkipNext: () => void;
 }
 
+import { Image } from 'react-native';
+import { Music } from 'lucide-react-native';
+
 export const MiniPlayer: React.FC<MiniPlayerProps> = ({
   currentTrack,
   isPlaying,
@@ -27,11 +30,20 @@ export const MiniPlayer: React.FC<MiniPlayerProps> = ({
       onPress={onPress} 
       activeOpacity={0.9}
     >
-      <View style={{ flex: 1 }}>
+      <View style={[styles.miniArtContainer, { backgroundColor: colors.border }]}>
+        {currentTrack.artwork ? (
+          <Image source={{ uri: currentTrack.artwork }} style={styles.miniArt} />
+        ) : (
+          <Music color={colors.text} size={20} />
+        )}
+      </View>
+      <View style={{ flex: 1, marginLeft: 12 }}>
         <Text style={{ color: colors.text, fontWeight: 'bold' }} numberOfLines={1}>
           {currentTrack.name}
         </Text>
-        <Text style={{ color: colors.primary, fontSize: 11 }}>{currentTrack.folder}</Text>
+        <Text style={{ color: colors.primary, fontSize: 11 }} numberOfLines={1}>
+          {currentTrack.artist || 'Unknown Artist'}
+        </Text>
       </View>
       <View style={{ flexDirection: 'row', alignItems: 'center' }}>
         <TouchableOpacity onPress={onTogglePlay}>
@@ -56,6 +68,9 @@ const styles = StyleSheet.create({
     alignItems: 'center', 
     paddingHorizontal: 20, 
     elevation: 20,
-    borderTopWidth: 1 
+    borderTopWidth: 1,
+    paddingBottom: 0
   },
+  miniArtContainer: { width: 50, height: 50, borderRadius: 8, overflow: 'hidden', justifyContent: 'center', alignItems: 'center' },
+  miniArt: { width: '100%', height: '100%' },
 });
