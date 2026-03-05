@@ -28,6 +28,14 @@
         "foregroundImage": "./assets/android-icon-foreground.png"
       }
     },
+    "plugins": [
+      [
+        "expo-audio",
+        {
+          "enableBackgroundPlayback": true
+        }
+      ]
+    ],
     "web": {
       "favicon": "./assets/favicon.png",
       "bundler": "metro",
