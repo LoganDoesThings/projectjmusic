@@ -1,9 +1,18 @@
 import React from 'react';
-import { StyleSheet, Text, View, TouchableOpacity } from 'react-native';
-import { Play, Pause, SkipForward } from 'lucide-react-native';
+import { 
+  StyleSheet, 
+  Text, 
+  View, 
+  TouchableOpacity,
+  Image 
+} from 'react-native';
+import { Play, Pause, SkipForward, Music } from 'lucide-react-native';
 import { Track } from '../types';
 import { Colors } from '../theme/colors';
 
+// ============================================================================
+// Props Interface
+// ============================================================================
 interface MiniPlayerProps {
   currentTrack: Track;
   isPlaying: boolean;
@@ -13,9 +22,10 @@ interface MiniPlayerProps {
   onSkipNext: () => void;
 }
 
-import { Image } from 'react-native';
-import { Music } from 'lucide-react-native';
-
+// ============================================================================
+// Mini Player Component
+// ============================================================================
+// A sticky bar at the bottom of the screen showing currently playing song.
 export const MiniPlayer: React.FC<MiniPlayerProps> = ({
   currentTrack,
   isPlaying,
@@ -26,39 +36,74 @@ export const MiniPlayer: React.FC<MiniPlayerProps> = ({
 }) => {
   return (
     <TouchableOpacity 
-      style={[styles.miniPlayer, { backgroundColor: colors.surface, borderTopColor: colors.border }]} 
+      style={[
+        styles.container, 
+        { 
+          backgroundColor: colors.surface, 
+          borderTopColor: colors.border,
+          shadowColor: colors.text
+        }
+      ]} 
       onPress={onPress} 
       activeOpacity={0.9}
     >
-      <View style={[styles.miniArtContainer, { backgroundColor: colors.border }]}>
+      
+      {/* --- Album Art Thumbnail --- */}
+      <View style={[styles.thumbnailContainer, { backgroundColor: colors.border }]}>
         {currentTrack.artwork ? (
-          <Image source={{ uri: currentTrack.artwork }} style={styles.miniArt} />
+          <Image 
+            source={{ uri: currentTrack.artwork }} 
+            style={styles.artwork} 
+            resizeMode="cover"
+          />
         ) : (
           <Music color={colors.text} size={20} />
         )}
       </View>
-      <View style={{ flex: 1, marginLeft: 12 }}>
-        <Text style={{ color: colors.text, fontWeight: 'bold' }} numberOfLines={1}>
+
+      {/* --- Track Info --- */}
+      <View style={styles.textContainer}>
+        <Text 
+          style={[styles.title, { color: colors.text }]} 
+          numberOfLines={1}
+        >
           {currentTrack.name}
         </Text>
-        <Text style={{ color: colors.primary, fontSize: 11 }} numberOfLines={1}>
+        <Text 
+          style={{ color: colors.primary, fontSize: 12 }} 
+          numberOfLines={1}
+        >
           {currentTrack.artist || 'Unknown Artist'}
         </Text>
       </View>
-      <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-        <TouchableOpacity onPress={onTogglePlay}>
-          {isPlaying ? <Pause color={colors.text} size={28} /> : <Play color={colors.text} size={28} />}
+
+      {/* --- Controls --- */}
+      <View style={styles.controls}>
+        {/* Play/Pause Button */}
+        <TouchableOpacity onPress={onTogglePlay} hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}>
+          {isPlaying ? (
+            <Pause color={colors.text} size={28} fill={colors.text} />
+          ) : (
+            <Play color={colors.text} size={28} fill={colors.text} />
+          )}
         </TouchableOpacity>
-        <TouchableOpacity onPress={onSkipNext} style={{ marginLeft: 15 }}>
-          <SkipForward color={colors.text} size={28} />
+        
+        {/* Skip Button */}
+        <TouchableOpacity 
+          onPress={onSkipNext} 
+          style={{ marginLeft: 20 }}
+          hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+        >
+          <SkipForward color={colors.text} size={28} fill={colors.text} />
         </TouchableOpacity>
       </View>
+      
     </TouchableOpacity>
   );
 };
 
 const styles = StyleSheet.create({
-  miniPlayer: { 
+  container: { 
     position: 'absolute', 
     bottom: 0, 
     left: 0, 
@@ -67,10 +112,37 @@ const styles = StyleSheet.create({
     flexDirection: 'row', 
     alignItems: 'center', 
     paddingHorizontal: 20, 
-    elevation: 20,
     borderTopWidth: 1,
-    paddingBottom: 0
+    paddingBottom: 10, // Extra padding for iPhone home indicator area
+    elevation: 10,
+    shadowOffset: { width: 0, height: -2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
   },
-  miniArtContainer: { width: 50, height: 50, borderRadius: 8, overflow: 'hidden', justifyContent: 'center', alignItems: 'center' },
-  miniArt: { width: '100%', height: '100%' },
+  thumbnailContainer: { 
+    width: 48, 
+    height: 48, 
+    borderRadius: 8, 
+    overflow: 'hidden', 
+    justifyContent: 'center', 
+    alignItems: 'center' 
+  },
+  artwork: { 
+    width: '100%', 
+    height: '100%' 
+  },
+  textContainer: {
+    flex: 1,
+    marginLeft: 15,
+    justifyContent: 'center'
+  },
+  title: {
+    fontSize: 14,
+    fontWeight: 'bold',
+    marginBottom: 2
+  },
+  controls: {
+    flexDirection: 'row',
+    alignItems: 'center'
+  }
 });

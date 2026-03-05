@@ -1,9 +1,19 @@
 import React from 'react';
-import { StyleSheet, Text, View, TouchableOpacity } from 'react-native';
+import { 
+  StyleSheet, 
+  Text, 
+  View, 
+  TouchableOpacity, 
+  Image,
+  Alert
+} from 'react-native';
 import { Music, Trash2, Heart } from 'lucide-react-native';
 import { Track } from '../types';
 import { Colors } from '../theme/colors';
 
+// ============================================================================
+// Props Interface
+// ============================================================================
 interface TrackItemProps {
   item: Track;
   isCurrent: boolean;
@@ -13,8 +23,10 @@ interface TrackItemProps {
   onToggleFavorite: () => void;
 }
 
-import { Image } from 'react-native';
-
+// ============================================================================
+// Track Item Component
+// ============================================================================
+// A single row in the song list representing a track.
 export const TrackItem: React.FC<TrackItemProps> = ({ 
   item, 
   isCurrent, 
@@ -23,45 +35,92 @@ export const TrackItem: React.FC<TrackItemProps> = ({
   onDelete,
   onToggleFavorite
 }) => {
+  
+  const handleDelete = () => {
+      Alert.alert(
+          "Delete Track",
+          `Are you sure you want to remove "${item.name}" from your library?`,
+          [
+              { text: "Cancel", style: "cancel" },
+              { text: "Delete", style: "destructive", onPress: onDelete }
+          ]
+      );
+  };
+
   return (
     <TouchableOpacity 
-      style={[styles.trackItem, isCurrent && { backgroundColor: colors.surface }]} 
+      style={[
+        styles.container, 
+        isCurrent && { backgroundColor: colors.surface } 
+      ]} 
       onPress={onPress}
+      activeOpacity={0.7}
     >
-      <View style={[styles.trackIconContainer, { backgroundColor: colors.border }]}>
+      {/* --- Album Art Icon --- */}
+      <View style={[styles.iconContainer, { backgroundColor: colors.border }]}>
         {item.artwork ? (
-          <Image source={{ uri: item.artwork }} style={styles.artwork} />
+          <Image 
+            source={{ uri: item.artwork }} 
+            style={styles.artwork} 
+            resizeMode="cover"
+          />
         ) : (
-          <Music color={isCurrent ? colors.primary : colors.text} size={22} />
+          <Music 
+            color={isCurrent ? colors.primary : colors.text} 
+            size={22} 
+          />
         )}
       </View>
-      <View style={{ flex: 1 }}>
+
+      {/* --- Text Info --- */}
+      <View style={styles.textContainer}>
         <Text 
-          style={[styles.trackName, { color: isCurrent ? colors.primary : colors.text }]} 
+          style={[
+            styles.title, 
+            { color: isCurrent ? colors.primary : colors.text }
+          ]} 
           numberOfLines={1}
         >
           {item.name}
         </Text>
-        <Text style={[styles.trackArtist, { color: colors.subtext }]} numberOfLines={1}>
-          {item.artist || 'Unknown Artist'} • {item.folder}
+        
+        <Text 
+          style={[styles.subtitle, { color: colors.subtext }]} 
+          numberOfLines={1}
+        >
+          {item.artist || 'Unknown Artist'} • {item.folder || 'General'}
         </Text>
       </View>
-      <TouchableOpacity onPress={onToggleFavorite} style={{ marginRight: 15 }}>
-        <Heart 
-          color={item.isFavorite ? '#FF4B4B' : colors.subtext} 
-          fill={item.isFavorite ? '#FF4B4B' : 'transparent'} 
-          size={20} 
-        />
-      </TouchableOpacity>
-      <TouchableOpacity onPress={onDelete}>
-        <Trash2 color={colors.subtext} size={18} />
-      </TouchableOpacity>
+
+      {/* --- Action Buttons --- */}
+      <View style={styles.actions}>
+        <TouchableOpacity 
+          onPress={onToggleFavorite} 
+          style={styles.actionButton}
+          hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+        >
+          <Heart 
+            color={item.isFavorite ? '#FF4B4B' : colors.subtext} 
+            fill={item.isFavorite ? '#FF4B4B' : 'transparent'} 
+            size={20} 
+          />
+        </TouchableOpacity>
+        
+        <TouchableOpacity 
+          onPress={handleDelete}
+          style={styles.actionButton}
+          hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+        >
+          <Trash2 color={colors.subtext} size={18} />
+        </TouchableOpacity>
+      </View>
+
     </TouchableOpacity>
   );
 };
 
 const styles = StyleSheet.create({
-  trackItem: { 
+  container: { 
     flexDirection: 'row', 
     alignItems: 'center', 
     padding: 12, 
@@ -69,16 +128,37 @@ const styles = StyleSheet.create({
     borderRadius: 12, 
     marginBottom: 5 
   },
-  trackIconContainer: { 
-    width: 45, 
-    height: 45, 
-    borderRadius: 10, 
+  iconContainer: { 
+    width: 48, 
+    height: 48, 
+    borderRadius: 8, 
     justifyContent: 'center', 
     alignItems: 'center', 
     marginRight: 15,
-    overflow: 'hidden'
+    overflow: 'hidden' // Ensures artwork doesn't bleed out
   },
-  artwork: { width: '100%', height: '100%' },
-  trackName: { fontSize: 16, fontWeight: '600' },
-  trackArtist: { fontSize: 12, marginTop: 2 },
+  artwork: { 
+    width: '100%', 
+    height: '100%' 
+  },
+  textContainer: { 
+    flex: 1,
+    justifyContent: 'center'
+  },
+  title: { 
+    fontSize: 16, 
+    fontWeight: '600',
+    marginBottom: 2
+  },
+  subtitle: { 
+    fontSize: 12 
+  },
+  actions: {
+      flexDirection: 'row',
+      alignItems: 'center'
+  },
+  actionButton: {
+      padding: 5,
+      marginLeft: 10
+  }
 });
