@@ -2,12 +2,12 @@ import React, { useState, useEffect, useRef } from 'react';
 import {
   StyleSheet,
   View,
-  SafeAreaView,
   StatusBar,
   Alert,
   TouchableOpacity,
   Text,
 } from 'react-native';
+import { SafeAreaProvider, SafeAreaView } from 'react-native-safe-area-context';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { NavigationContainer } from '@react-navigation/native';
 import { 
@@ -55,7 +55,7 @@ export default function App() {
     // Cleanup on unmount (stop music, clear timers)
     return () => {
       if (store.sound) {
-          store.sound.unloadAsync();
+          store.sound.pause();
       }
       if (timerRef.current) {
           clearInterval(timerRef.current);
@@ -76,7 +76,7 @@ export default function App() {
     } else if (store.sleepTimerSeconds === 0) {
       // Timer finished: Pause music and reset
       if (store.sound) {
-          store.sound.pauseAsync();
+          store.sound.pause();
       }
       store.setSleepTimerSeconds(null);
       
@@ -131,98 +131,100 @@ export default function App() {
   // --- Render ---
 
   return (
-    <SafeAreaView style={[styles.container, { backgroundColor: colors.bg }]}>
-      <StatusBar barStyle={isDarkMode ? 'light-content' : 'dark-content'} backgroundColor={colors.bg} />
-      
-      {/* Top Header Bar */}
-      <View style={styles.header}>
-        <View>
-          <Text style={[styles.title, { color: colors.text }]}>JMusic</Text>
-        </View>
+    <SafeAreaProvider>
+      <SafeAreaView style={[styles.container, { backgroundColor: colors.bg }]}>
+        <StatusBar barStyle={isDarkMode ? 'light-content' : 'dark-content'} backgroundColor={colors.bg} />
         
-        <View style={styles.headerIcons}>
-          {/* Theme Toggle */}
-          <TouchableOpacity onPress={toggleTheme} style={styles.iconButton}>
-            {isDarkMode ? <Sun color="#FFD700" size={22} /> : <Moon color="#555" size={22} />}
-          </TouchableOpacity>
+        {/* Top Header Bar */}
+        <View style={styles.header}>
+          <View>
+            <Text style={[styles.title, { color: colors.text }]}>JMusic</Text>
+          </View>
           
-          {/* FX Modal Toggle */}
-          <TouchableOpacity onPress={() => setIsFXModalVisible(true)} style={styles.iconButton}>
-            <Activity color={colors.text} size={22} />
-          </TouchableOpacity>
-          
-          {/* Sleep Timer Toggle */}
-          <TouchableOpacity onPress={() => setIsSleepModalVisible(true)} style={styles.iconButton}>
-            <Clock 
-              color={store.sleepTimerSeconds ? colors.primary : colors.text} 
-              size={22} 
-            />
-          </TouchableOpacity>
+          <View style={styles.headerIcons}>
+            {/* Theme Toggle */}
+            <TouchableOpacity onPress={toggleTheme} style={styles.iconButton}>
+              {isDarkMode ? <Sun color="#FFD700" size={22} /> : <Moon color="#555" size={22} />}
+            </TouchableOpacity>
+            
+            {/* FX Modal Toggle */}
+            <TouchableOpacity onPress={() => setIsFXModalVisible(true)} style={styles.iconButton}>
+              <Activity color={colors.text} size={22} />
+            </TouchableOpacity>
+            
+            {/* Sleep Timer Toggle */}
+            <TouchableOpacity onPress={() => setIsSleepModalVisible(true)} style={styles.iconButton}>
+              <Clock 
+                color={store.sleepTimerSeconds ? colors.primary : colors.text} 
+                size={22} 
+              />
+            </TouchableOpacity>
+          </View>
         </View>
-      </View>
 
-      {/* Main Content (Tabs) */}
-      <NavigationContainer>
-        <AppNavigator isDarkMode={isDarkMode} />
-      </NavigationContainer>
+        {/* Main Content (Tabs) */}
+        <NavigationContainer>
+          <AppNavigator isDarkMode={isDarkMode} />
+        </NavigationContainer>
 
-      {/* Mini Player (Bottom Bar) */}
-      {currentTrack && (
-        <MiniPlayer
+        {/* Mini Player (Bottom Bar) */}
+        {currentTrack && (
+          <MiniPlayer
+            currentTrack={currentTrack}
+            isPlaying={store.isPlaying}
+            colors={colors}
+            onPress={() => setIsModalVisible(true)}
+            onTogglePlay={store.togglePlayPause}
+            onSkipNext={store.skipNext}
+          />
+        )}
+
+        {/* Full Screen Player */}
+        <PlayerModal
+          visible={isModalVisible}
+          onClose={() => setIsModalVisible(false)}
           currentTrack={currentTrack}
           isPlaying={store.isPlaying}
-          colors={colors}
-          onPress={() => setIsModalVisible(true)}
           onTogglePlay={store.togglePlayPause}
           onSkipNext={store.skipNext}
+          onSkipBack={store.skipBack}
+          playbackPosition={store.playbackPosition}
+          playbackDuration={store.playbackDuration}
+          onSeek={store.onSeek}
+          onSeeking={store.setIsSeeking}
+          isShuffle={store.isShuffle}
+          onToggleShuffle={store.toggleShuffle}
+          repeatMode={store.repeatMode}
+          onCycleRepeat={store.cycleRepeatMode}
+          onOpenFX={() => setIsFXModalVisible(true)}
+          onToggleFavorite={() => currentTrack && store.toggleFavorite(currentTrack.id)}
+          colors={colors}
+          formatTime={formatTime}
         />
-      )}
 
-      {/* Full Screen Player */}
-      <PlayerModal
-        visible={isModalVisible}
-        onClose={() => setIsModalVisible(false)}
-        currentTrack={currentTrack}
-        isPlaying={store.isPlaying}
-        onTogglePlay={store.togglePlayPause}
-        onSkipNext={store.skipNext}
-        onSkipBack={store.skipBack}
-        playbackPosition={store.playbackPosition}
-        playbackDuration={store.playbackDuration}
-        onSeek={store.onSeek}
-        onSeeking={store.setIsSeeking}
-        isShuffle={store.isShuffle}
-        onToggleShuffle={store.toggleShuffle}
-        repeatMode={store.repeatMode}
-        onCycleRepeat={store.cycleRepeatMode}
-        onOpenFX={() => setIsFXModalVisible(true)}
-        onToggleFavorite={() => currentTrack && store.toggleFavorite(currentTrack.id)}
-        colors={colors}
-        formatTime={formatTime}
-      />
+        {/* Speed & Pitch Controls */}
+        <FXModal
+          visible={isFXModalVisible}
+          onClose={() => setIsFXModalVisible(false)}
+          playbackSpeed={store.playbackSpeed}
+          onSpeedChange={store.setPlaybackSpeed}
+          playbackPitch={store.playbackPitch}
+          onPitchChange={store.setPlaybackPitch}
+          colors={colors}
+        />
 
-      {/* Speed & Pitch Controls */}
-      <FXModal
-        visible={isFXModalVisible}
-        onClose={() => setIsFXModalVisible(false)}
-        playbackSpeed={store.playbackSpeed}
-        onSpeedChange={store.setPlaybackSpeed}
-        playbackPitch={store.playbackPitch}
-        onPitchChange={store.setPlaybackPitch}
-        colors={colors}
-      />
-
-      {/* Sleep Timer Settings */}
-      <SleepModal
-        visible={isSleepModalVisible}
-        onClose={() => setIsSleepModalVisible(false)}
-        onSetTimer={(m) => {
-          store.setSleepTimerSeconds(m * 60);
-          setIsSleepModalVisible(false);
-        }}
-        colors={colors}
-      />
-    </SafeAreaView>
+        {/* Sleep Timer Settings */}
+        <SleepModal
+          visible={isSleepModalVisible}
+          onClose={() => setIsSleepModalVisible(false)}
+          onSetTimer={(m) => {
+            store.setSleepTimerSeconds(m * 60);
+            setIsSleepModalVisible(false);
+          }}
+          colors={colors}
+        />
+      </SafeAreaView>
+    </SafeAreaProvider>
   );
 }
 

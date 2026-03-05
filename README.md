@@ -16,7 +16,7 @@ A high-performance, aesthetically pleasing music player built with **React Nativ
 
 ### 🎧 Superior Playback Control
 - **Dynamic Store:** Powered by **Zustand** for ultra-smooth, synchronized playback states.
-- **Precision Audio:** Integrated with `expo-av` for high-fidelity sound.
+- **Precision Audio:** Integrated with `expo-audio` for high-fidelity sound.
 - **Smart Queue:** Advanced shuffle and repeat modes (`none`, `one`, `all`).
 
 ### 📂 Professional Organization
@@ -37,7 +37,7 @@ A high-performance, aesthetically pleasing music player built with **React Nativ
 - **UI Architecture:** React Native (TypeScript)
 - **State Management:** [Zustand](https://github.com/pmndrs/zustand)
 - **Navigation:** [React Navigation v6](https://reactnavigation.org/)
-- **Audio Processing:** `expo-av`
+- **Audio Processing:** `expo-audio`
 - **Metadata Parsing:** `music-metadata-browser`
 - **Iconography:** `lucide-react-native`
 

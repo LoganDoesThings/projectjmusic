@@ -33,6 +33,11 @@
       "bundler": "metro",
       "description": "JMusic - Your personal music player",
       "name": "JMusic Web"
+    },
+    "extra": {
+      "eas": {
+        "projectId": "875f0806-5dbc-4385-9d15-e9c40359e967"
+      }
     }
   }
 }
