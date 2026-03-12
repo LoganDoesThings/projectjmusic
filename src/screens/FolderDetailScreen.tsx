@@ -14,7 +14,7 @@ import { useMusicStore } from '../store/useMusicStore';
 import { TrackItem } from '../components/TrackItem';
 import { getColors } from '../theme/colors';
 import { Track } from '../types';
-
+import { createTrackId } from '../utils/createTrackId';
 import { getMetadata } from '../utils/metadata';
 
 // ============================================================================
@@ -52,7 +52,7 @@ export const FolderDetailScreen = ({ route, navigation, isDarkMode }: any) => {
         const newTracks: Track[] = await Promise.all(result.assets.map(async asset => {
           const metadata = await getMetadata(asset.uri);
           return {
-            id: Math.random().toString(36).substr(2, 9),
+            id: createTrackId(),
             name: asset.name,
             uri: asset.uri,
             folder: folderName, // Assign directly to this folder

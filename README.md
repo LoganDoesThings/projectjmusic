@@ -7,7 +7,7 @@ A high-performance, aesthetically pleasing music player built with **React Nativ
 <p align="center">
   <img src="https://img.shields.io/badge/Status-Development-orange?style=for-the-badge" alt="Status" />
   <img src="https://img.shields.io/badge/Platform-Android%20%7C%20iOS%20%7C%20Web-lightgrey?style=for-the-badge&logo=react" alt="Platform" />
-  <img src="https://img.shields.io/badge/Engine-Expo--AV-0081ff?style=for-the-badge" alt="Engine" />
+  <img src="https://img.shields.io/badge/Engine-Expo--Audio-0081ff?style=for-the-badge" alt="Engine" />
 </p>
 
 ---
@@ -25,7 +25,7 @@ A high-performance, aesthetically pleasing music player built with **React Nativ
 - **Virtual Folders:** Categorize your library with custom folders for quick access.
 
 ### 🛠 Audiophile Tools
-- **FX Suite:** Real-time adjustment of **Playback Speed** and **Pitch**.
+- **FX Suite:** Playback speed controls with an in-progress FX interface.
 - **Sleep Timer:** Intelligent countdown to gracefully stop your music.
 - **Adaptive UI:** Seamlessly switch between **Obsidian Dark** and **Pure Light** modes.
 
@@ -36,7 +36,7 @@ A high-performance, aesthetically pleasing music player built with **React Nativ
 - **Runtime:** [Expo SDK 55](https://expo.dev/)
 - **UI Architecture:** React Native (TypeScript)
 - **State Management:** [Zustand](https://github.com/pmndrs/zustand)
-- **Navigation:** [React Navigation v6](https://reactnavigation.org/)
+- **Navigation:** [React Navigation v7](https://reactnavigation.org/)
 - **Audio Processing:** `expo-audio`
 - **Metadata Parsing:** `music-metadata-browser`
 - **Iconography:** `lucide-react-native`

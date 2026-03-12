@@ -8,6 +8,7 @@ import {
   Alert
 } from 'react-native';
 import { Music, Trash2, Heart } from 'lucide-react-native';
+import { DEFAULT_FOLDER } from '../constants';
 import { Track } from '../types';
 import { Colors } from '../theme/colors';
 
@@ -88,7 +89,7 @@ export const TrackItem: React.FC<TrackItemProps> = ({
           style={[styles.subtitle, { color: colors.subtext }]} 
           numberOfLines={1}
         >
-          {item.artist || 'Unknown Artist'} • {item.folder || 'General'}
+          {item.artist || 'Unknown Artist'} • {item.folder || DEFAULT_FOLDER}
         </Text>
       </View>
 

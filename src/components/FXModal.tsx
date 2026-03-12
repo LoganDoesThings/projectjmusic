@@ -26,8 +26,8 @@ interface FXModalProps {
 // ============================================================================
 // FX Modal Component
 // ============================================================================
-// Controls for Playback Speed and Pitch.
-// Also includes a visual placeholder for an Equalizer.
+// Controls for playback speed plus in-progress FX UI.
+// The equalizer remains a visual placeholder for now.
 export const FXModal: React.FC<FXModalProps> = ({
   visible,
   onClose,

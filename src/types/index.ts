@@ -6,7 +6,7 @@
  * Represents a single audio file in the library.
  */
 export interface Track {
-  id: string;          // Unique identifier (usually random string)
+  id: string;          // Unique identifier generated when the track is added
   name: string;        // Display name of the song
   uri: string;         // Local file path or remote URL
   isFavorite?: boolean;// Has the user 'hearted' this track?

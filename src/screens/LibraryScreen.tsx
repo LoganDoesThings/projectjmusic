@@ -6,18 +6,18 @@ import {
   StyleSheet, 
   TouchableOpacity, 
   Alert, 
-  Platform, 
   Modal, 
   TextInput,
   ActivityIndicator
 } from 'react-native';
 import { Music, Plus, Globe } from 'lucide-react-native';
 import * as DocumentPicker from 'expo-document-picker';
+import { DEFAULT_FOLDER } from '../constants';
 import { useMusicStore } from '../store/useMusicStore';
 import { TrackItem } from '../components/TrackItem';
 import { getColors } from '../theme/colors';
 import { Track } from '../types';
-
+import { createTrackId } from '../utils/createTrackId';
 import { getMetadata } from '../utils/metadata';
 
 // ============================================================================
@@ -60,10 +60,10 @@ export const LibraryScreen = ({ isDarkMode }: { isDarkMode: boolean }) => {
           const metadata = await getMetadata(asset.uri);
           
           return {
-            id: Math.random().toString(36).substr(2, 9), // Simple unique ID
+            id: createTrackId(),
             name: asset.name,
             uri: asset.uri,
-            folder: 'General', // Default folder
+            folder: DEFAULT_FOLDER,
             ...metadata
           };
         }));
@@ -94,10 +94,10 @@ export const LibraryScreen = ({ isDarkMode }: { isDarkMode: boolean }) => {
       const name = urlInput.split('/').pop()?.split('?')[0] || 'Remote Track';
       
       const newTrack: Track = {
-        id: Math.random().toString(36).substr(2, 9),
+        id: createTrackId(),
         name: name,
         uri: urlInput,
-        folder: 'General',
+        folder: DEFAULT_FOLDER,
         ...metadata
       };
       

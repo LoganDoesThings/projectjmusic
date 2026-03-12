@@ -2,6 +2,7 @@ import { create } from 'zustand';
 import { createAudioPlayer, AudioPlayer } from 'expo-audio';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Alert } from 'react-native';
+import { DEFAULT_FOLDER } from '../constants';
 import { Track, RepeatMode } from '../types';
 
 // ============================================================================
@@ -46,7 +47,7 @@ interface MusicState {
 // ============================================================================
 export const useMusicStore = create<MusicState>((set, get) => ({
   tracks: [],
-  folders: ['General'],
+  folders: [DEFAULT_FOLDER],
   currentTrackIndex: null,
   isPlaying: false,
   sound: null,
@@ -153,7 +154,7 @@ export const useMusicStore = create<MusicState>((set, get) => ({
     
     if (!sound) {
       if (tracks.length > 0) {
-        playTrack(0);
+        await playTrack(0);
       }
       return;
     }
@@ -169,7 +170,7 @@ export const useMusicStore = create<MusicState>((set, get) => ({
     const { tracks, currentTrackIndex, isShuffle, playTrack } = get();
     if (tracks.length === 0) return;
     if (currentTrackIndex === null) {
-        playTrack(0);
+        await playTrack(0);
         return;
     }
 

@@ -22,6 +22,7 @@ import {
   Heart
 } from 'lucide-react-native';
 import Slider from '@react-native-community/slider';
+import { DEFAULT_FOLDER } from '../constants';
 import { Track, RepeatMode } from '../types';
 import { Colors } from '../theme/colors';
 
@@ -142,7 +143,7 @@ export const PlayerModal: React.FC<PlayerModalProps> = ({
               {currentTrack?.artist || 'Unknown Artist'}
             </Text>
             <Text style={{ color: colors.subtext, fontSize: 14, marginTop: 4 }}>
-              {currentTrack?.folder || 'General'}
+              {currentTrack?.folder || DEFAULT_FOLDER}
             </Text>
           </View>
           
