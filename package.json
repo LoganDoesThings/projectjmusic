@@ -1,13 +1,48 @@
 {
   "name": "projectjmusic",
-  "version": "1.0.0",
+  "version": "1.1.0",
+  "description": "JMusic - Your personal music player",
+  "author": "LoganDoesThings <logan@example.com>",
   "main": "index.ts",
   "scripts": {
     "start": "expo start",
     "android": "expo run:android",
     "ios": "expo run:ios",
     "web": "expo start --web",
-    "build": "expo export"
+    "build": "expo export",
+    "electron:start": "export IS_DEV=true && npx expo export --platform web && electron electron/main.js",
+    "electron:build:linux": "npx expo export --platform web && electron-builder --linux deb",
+    "electron:build:win": "npx expo export --platform web && electron-builder --win nsis"
+  },
+  "build": {
+    "appId": "com.logandoesthings.jmusic",
+    "productName": "JMusic",
+    "extraMetadata": {
+      "main": "electron/main.js"
+    },
+    "directories": {
+      "output": "dist-desktop"
+    },
+    "files": [
+      "dist/**/*",
+      "electron/**/*",
+      "assets/**/*",
+      "package.json"
+    ],
+    "linux": {
+      "target": [
+        "deb",
+        "AppImage"
+      ],
+      "category": "AudioVideo",
+      "icon": "assets/icon.png"
+    },
+    "win": {
+      "target": [
+        "nsis"
+      ],
+      "icon": "assets/icon.png"
+    }
   },
   "dependencies": {
     "@expo/metro-runtime": "~55.0.6",
@@ -17,7 +52,9 @@
     "@react-navigation/native": "^7.1.33",
     "@react-navigation/native-stack": "^7.14.4",
     "buffer": "^6.0.3",
+    "electron-serve": "^3.0.1",
     "expo": "~55.0.4",
+    "expo-asset": "~55.0.8",
     "expo-audio": "^55.0.8",
     "expo-dev-client": "~55.0.11",
     "expo-document-picker": "~55.0.8",
@@ -30,11 +67,14 @@
     "react-native": "0.83.2",
     "react-native-safe-area-context": "~5.6.2",
     "react-native-screens": "~4.23.0",
+    "react-native-svg": "15.15.3",
     "react-native-web": "^0.21.0",
     "zustand": "^5.0.11"
   },
   "devDependencies": {
     "@types/react": "~19.2.2",
+    "electron": "^41.0.2",
+    "electron-builder": "^26.8.1",
     "typescript": "~5.9.2"
   },
   "private": true,

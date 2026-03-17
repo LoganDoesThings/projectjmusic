@@ -1,6 +1,14 @@
 import * as mm from 'music-metadata-browser';
 import { Buffer } from 'buffer';
 
+const ASF_HEADER_OBJECT_GUID = Uint8Array.from([
+  0x30, 0x26, 0xB2, 0x75, 0x8E, 0x66, 0xCF, 0x11,
+  0xA6, 0xD9, 0x00, 0xAA, 0x00, 0x62, 0xCE, 0x6C,
+]);
+const ASF_OBJECT_HEADER_SIZE = 24;
+const ASF_FILE_HEADER_SIZE = 30;
+const MAX_ASF_OBJECT_COUNT = 1024;
+
 // ============================================================================
 // Metadata Interface
 // ============================================================================
@@ -11,6 +19,50 @@ export interface Metadata {
   artwork?: string; // Base64 encoded image string (data:image/jpeg;base64,...)
   duration?: number; // Duration in milliseconds
 }
+
+const hasPrefix = (bytes: Uint8Array, prefix: Uint8Array) =>
+  prefix.every((value, index) => bytes[index] === value);
+
+const readUint64LE = (view: DataView, offset: number) => {
+  const lower = view.getUint32(offset, true);
+  const upper = view.getUint32(offset + 4, true);
+  return upper * 2 ** 32 + lower;
+};
+
+const hasMalformedAsfHeader = (arrayBuffer: ArrayBuffer) => {
+  const bytes = new Uint8Array(arrayBuffer);
+  if (bytes.length < ASF_FILE_HEADER_SIZE || !hasPrefix(bytes, ASF_HEADER_OBJECT_GUID)) {
+    return false;
+  }
+
+  const view = new DataView(arrayBuffer);
+  const headerSize = readUint64LE(view, 16);
+  const headerCount = view.getUint32(24, true);
+
+  if (
+    headerSize < ASF_FILE_HEADER_SIZE ||
+    headerSize > bytes.length ||
+    headerCount > MAX_ASF_OBJECT_COUNT
+  ) {
+    return true;
+  }
+
+  let offset = ASF_FILE_HEADER_SIZE;
+  for (let index = 0; index < headerCount; index += 1) {
+    if (offset + ASF_OBJECT_HEADER_SIZE > bytes.length) {
+      return true;
+    }
+
+    const objectSize = readUint64LE(view, offset + 16);
+    if (objectSize < ASF_OBJECT_HEADER_SIZE || offset + objectSize > bytes.length) {
+      return true;
+    }
+
+    offset += objectSize;
+  }
+
+  return false;
+};
 
 // ============================================================================
 // Metadata Extraction Utility
@@ -46,7 +98,14 @@ export const getMetadata = async (uri: string): Promise<Metadata> => {
       };
       reader.onerror = () => reject(new Error("FileReader error"));
       reader.readAsArrayBuffer(blob);
-    });
+     });
+
+    // Guard against malformed ASF headers that can hang vulnerable file-type versions
+    // during parser-based format detection inside music-metadata.
+    if (hasMalformedAsfHeader(arrayBuffer)) {
+      console.warn(`Skipping metadata parsing for malformed ASF input: ${uri}`);
+      return {};
+    }
 
     // 3. Parse the buffer using music-metadata-browser
     // We specify 'audio/mpeg' as a hint, but the library is smart enough to detect most formats.

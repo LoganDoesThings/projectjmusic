@@ -9,6 +9,7 @@ dist/
 *.aab
 
 web-build/
+dist-desktop/
 expo-env.d.ts
 
 # Native
