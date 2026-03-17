@@ -100,7 +100,15 @@ We provide installable solutions for multiple desktop platforms:
 
 ---
 
-## 🆕 What's New (v1.1.0)
+## 🆕 What's New
+
+### v1.1.2
+- **Hardened Electron Security:** Re-enabled `webSecurity` and added `sandbox: true` to protect against remote code execution and cross-site scripting vulnerabilities.
+
+### v1.1.1
+- **Security Patch:** Replaced deprecated `music-metadata-browser` with secure `music-metadata` to fix a high-risk infinite loop vulnerability in the ASF parser (`file-type`).
+
+### v1.1.0
 - **Full Desktop Support:** Integrated Electron for native Linux and Windows applications.
 - **Cross-Platform Packaging:** Automated builds for `.deb`, `.AppImage`, and `.exe` formats.
 - **Polished Desktop UI:** Dark theme optimization and hidden menu bars for a clean look.
