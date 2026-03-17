@@ -61,7 +61,7 @@
     "expo-file-system": "~55.0.10",
     "expo-status-bar": "~55.0.4",
     "lucide-react-native": "^0.576.0",
-    "music-metadata-browser": "^2.5.11",
+    "music-metadata": "^11.12.3",
     "react": "19.2.0",
     "react-dom": "19.2.0",
     "react-native": "0.83.2",

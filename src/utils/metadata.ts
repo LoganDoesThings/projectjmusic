@@ -1,4 +1,4 @@
-import * as mm from 'music-metadata-browser';
+import * as mm from 'music-metadata';
 import { Buffer } from 'buffer';
 
 const ASF_HEADER_OBJECT_GUID = Uint8Array.from([
