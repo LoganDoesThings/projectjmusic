@@ -102,6 +102,11 @@ We provide installable solutions for multiple desktop platforms:
 
 ## 🆕 What's New
 
+### v1.2.0
+- **Release Synchronization:** Aligned `package.json` and `app.json` versions to `1.2.0` for deployment consistency.
+- **Brand Refresh In-Progress:** Cited upcoming professional logo and brand asset updates in metadata and documentation.
+- **Android Release Prep:** Incremented version code for Play Store submission.
+
 ### v1.1.2
 - **Hardened Electron Security:** Re-enabled `webSecurity` and added `sandbox: true` to protect against remote code execution and cross-site scripting vulnerabilities.
 
