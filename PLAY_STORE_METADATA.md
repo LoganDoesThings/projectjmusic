@@ -32,6 +32,8 @@ JMusic respects your privacy. All your music and settings stay on your device—
 - **Feature Graphic (1024x500):** ❌ Need to create this (Required for Play Store)
 - **Phone Screenshots (min 2):** ❌ Capture these from your development build.
 
+**Note:** New, professionally designed logos and brand assets are currently in development and will be included in a future update.
+
 ## 📁 Categorization
 
 - **Category:** Music & Audio
