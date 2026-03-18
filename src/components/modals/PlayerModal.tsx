@@ -22,9 +22,9 @@ import {
   Heart
 } from 'lucide-react-native';
 import Slider from '@react-native-community/slider';
-import { DEFAULT_FOLDER } from '../constants';
-import { Track, RepeatMode } from '../types';
-import { Colors } from '../theme/colors';
+import { DEFAULT_FOLDER } from '../../constants';
+import { Track, RepeatMode } from '../../types';
+import { Colors } from '../../theme/colors';
 
 // ============================================================================
 // Props Interface

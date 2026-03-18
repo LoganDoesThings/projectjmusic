@@ -11,18 +11,24 @@ import {
 import { Music, ArrowLeft, Plus } from 'lucide-react-native';
 import * as DocumentPicker from 'expo-document-picker';
 import { useMusicStore } from '../store/useMusicStore';
-import { TrackItem } from '../components/TrackItem';
+import { TrackItem } from '../components/player/TrackItem';
 import { getColors } from '../theme/colors';
 import { Track } from '../types';
 import { createTrackId } from '../utils/createTrackId';
 import { getMetadata } from '../utils/metadata';
+
+import { FolderStackScreenProps } from '../types/navigation';
 
 // ============================================================================
 // Folder Detail Screen
 // ============================================================================
 // Shows tracks belonging to a specific folder. 
 // Allows adding new tracks directly to this folder.
-export const FolderDetailScreen = ({ route, navigation, isDarkMode }: any) => {
+interface FolderDetailScreenProps extends FolderStackScreenProps<'FolderDetail'> {
+  isDarkMode: boolean;
+}
+
+export const FolderDetailScreen = ({ route, navigation, isDarkMode }: FolderDetailScreenProps) => {
   // Get the folder name from navigation parameters
   const { folderName } = route.params;
   

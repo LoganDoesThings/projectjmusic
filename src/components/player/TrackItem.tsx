@@ -8,9 +8,9 @@ import {
   Alert
 } from 'react-native';
 import { Music, Trash2, Heart } from 'lucide-react-native';
-import { DEFAULT_FOLDER } from '../constants';
-import { Track } from '../types';
-import { Colors } from '../theme/colors';
+import { DEFAULT_FOLDER } from '../../constants';
+import { Track } from '../../types';
+import { Colors } from '../../theme/colors';
 
 // ============================================================================
 // Props Interface

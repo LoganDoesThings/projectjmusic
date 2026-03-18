@@ -7,14 +7,20 @@ import {
 } from 'react-native';
 import { Music, Heart } from 'lucide-react-native';
 import { useMusicStore } from '../store/useMusicStore';
-import { TrackItem } from '../components/TrackItem';
+import { TrackItem } from '../components/player/TrackItem';
 import { getColors } from '../theme/colors';
+
+import { MainTabScreenProps } from '../types/navigation';
 
 // ============================================================================
 // Favorites Screen
 // ============================================================================
 // Displays a list of songs marked as 'favorite'.
-export const FavoritesScreen = ({ isDarkMode }: { isDarkMode: boolean }) => {
+interface FavoritesScreenProps extends MainTabScreenProps<'Favorites'> {
+  isDarkMode: boolean;
+}
+
+export const FavoritesScreen = ({ isDarkMode }: FavoritesScreenProps) => {
   const store = useMusicStore();
   const colors = getColors(isDarkMode);
   

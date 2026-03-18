@@ -6,7 +6,7 @@ import {
   TouchableOpacity, 
   Modal 
 } from 'react-native';
-import { Colors } from '../theme/colors';
+import { Colors } from '../../theme/colors';
 
 // ============================================================================
 // Props Interface

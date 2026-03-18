@@ -1,14 +1,12 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   StyleSheet,
   View,
   StatusBar,
-  Alert,
   TouchableOpacity,
   Text,
 } from 'react-native';
 import { SafeAreaProvider, SafeAreaView } from 'react-native-safe-area-context';
-import AsyncStorage from '@react-native-async-storage/async-storage';
 import { NavigationContainer } from '@react-navigation/native';
 import { 
   Clock,
@@ -17,123 +15,59 @@ import {
   Moon
 } from 'lucide-react-native';
 
-import { getColors } from './src/theme/colors';
-import { MiniPlayer } from './src/components/MiniPlayer';
-import { PlayerModal } from './src/components/PlayerModal';
-import { FXModal } from './src/components/FXModal';
-import { SleepModal } from './src/components/SleepModal';
+// State & Logic
 import { useMusicStore } from './src/store/useMusicStore';
+import { useTheme } from './src/hooks/useTheme';
+import { useSleepTimer } from './src/hooks/useSleepTimer';
 import { AppNavigator } from './src/navigation/AppNavigator';
 
-// ============================================================================
-// Main Application Component
-// ============================================================================
-// The root component that sets up providers, navigation, and global modals.
+// Components
+import { MiniPlayer } from './src/components/player/MiniPlayer';
+import { PlayerModal } from './src/components/modals/PlayerModal';
+import { FXModal } from './src/components/modals/FXModal';
+import { SleepModal } from './src/components/modals/SleepModal';
+
+// Utilities
+import { formatTime } from './src/utils/time';
+
+/**
+ * Main Application Component
+ * The root component that sets up providers, navigation, and global modals.
+ */
 export default function App() {
   const store = useMusicStore();
+  const { isDarkMode, toggleTheme, colors } = useTheme();
+  const { sleepTimerSeconds, setTimer } = useSleepTimer();
   
-  // --- Local State ---
-  const [isDarkMode, setIsDarkMode] = useState(true);
+  // --- Local UI State ---
+  const [isModalVisible, setIsModalVisible] = useState(false);     // Full screen player
+  const [isFXModalVisible, setIsFXModalVisible] = useState(false);   // Speed/Pitch controls
+  const [isSleepModalVisible, setIsSleepModalVisible] = useState(false); // Sleep timer settings
   
-  // Modal visibility states
-  const [isModalVisible, setIsModalVisible] = useState(false); // Full screen player
-  const [isFXModalVisible, setIsFXModalVisible] = useState(false); // Speed/Pitch controls
-  const [isSleepModalVisible, setIsSleepModalVisible] = useState(false); // Sleep timer
-  
-  // Timer reference for the sleep countdown
-  const timerRef = useRef<NodeJS.Timeout | null>(null);
-
-  const colors = getColors(isDarkMode);
-
   // --- Initialization ---
-  
   useEffect(() => {
     // Load persisted tracks and settings
     store.loadData();
-    loadTheme();
     
-    // Cleanup on unmount (stop music, clear timers)
+    // Cleanup on unmount (stop music)
     return () => {
       if (store.sound) {
-          store.sound.pause();
-      }
-      if (timerRef.current) {
-          clearInterval(timerRef.current);
+        store.sound.pause();
       }
     };
   }, []);
 
-  // --- Sleep Timer Logic ---
-  
-  useEffect(() => {
-    // If timer is set and running
-    if (store.sleepTimerSeconds !== null && store.sleepTimerSeconds > 0) {
-      // Decrement every second
-      timerRef.current = setInterval(() => {
-        store.setSleepTimerSeconds(store.sleepTimerSeconds! - 1);
-      }, 1000);
-      
-    } else if (store.sleepTimerSeconds === 0) {
-      // Timer finished: Pause music and reset
-      if (store.sound) {
-          store.sound.pause();
-      }
-      store.setSleepTimerSeconds(null);
-      
-      if (timerRef.current) {
-          clearInterval(timerRef.current);
-      }
-      
-      Alert.alert("Sleep Timer", "Music stopped.");
-    }
-    
-    // Clear interval on every re-render of this effect
-    return () => { 
-        if (timerRef.current) clearInterval(timerRef.current); 
-    };
-  }, [store.sleepTimerSeconds]);
-
-  // --- Theme Logic ---
-
-  const loadTheme = async () => {
-    try {
-      const storedTheme = await AsyncStorage.getItem('theme');
-      if (storedTheme) {
-          setIsDarkMode(storedTheme === 'dark');
-      }
-    } catch (e) {
-      console.warn("Failed to load theme", e);
-    }
-  };
-
-  const toggleTheme = async () => {
-    const newTheme = !isDarkMode;
-    setIsDarkMode(newTheme);
-    try {
-      await AsyncStorage.setItem('theme', newTheme ? 'dark' : 'light');
-    } catch (e) {
-      console.warn("Failed to save theme", e);
-    }
-  };
-
-  // --- Helper Functions ---
-
-  const formatTime = (millis: number) => {
-    if (millis < 0) return "0:00";
-    const totalSeconds = Math.floor(millis / 1000);
-    const mins = Math.floor(totalSeconds / 60);
-    const secs = totalSeconds % 60;
-    return `${mins}:${secs < 10 ? '0' : ''}${secs}`;
-  };
-
+  // --- Helpers ---
   const currentTrack = store.currentTrackIndex !== null ? store.tracks[store.currentTrackIndex] : null;
 
   // --- Render ---
-
   return (
     <SafeAreaProvider>
       <SafeAreaView style={[styles.container, { backgroundColor: colors.bg }]}>
-        <StatusBar barStyle={isDarkMode ? 'light-content' : 'dark-content'} backgroundColor={colors.bg} />
+        <StatusBar 
+          barStyle={isDarkMode ? 'light-content' : 'dark-content'} 
+          backgroundColor={colors.bg} 
+        />
         
         {/* Top Header Bar */}
         <View style={styles.header}>
@@ -148,26 +82,32 @@ export default function App() {
             </TouchableOpacity>
             
             {/* FX Modal Toggle */}
-            <TouchableOpacity onPress={() => setIsFXModalVisible(true)} style={styles.iconButton}>
+            <TouchableOpacity 
+              onPress={() => setIsFXModalVisible(true)} 
+              style={styles.iconButton}
+            >
               <Activity color={colors.text} size={22} />
             </TouchableOpacity>
             
             {/* Sleep Timer Toggle */}
-            <TouchableOpacity onPress={() => setIsSleepModalVisible(true)} style={styles.iconButton}>
+            <TouchableOpacity 
+              onPress={() => setIsSleepModalVisible(true)} 
+              style={styles.iconButton}
+            >
               <Clock 
-                color={store.sleepTimerSeconds ? colors.primary : colors.text} 
+                color={sleepTimerSeconds ? colors.primary : colors.text} 
                 size={22} 
               />
             </TouchableOpacity>
           </View>
         </View>
 
-        {/* Main Content (Tabs) */}
+        {/* Main Navigation (Tabs) */}
         <NavigationContainer>
           <AppNavigator isDarkMode={isDarkMode} />
         </NavigationContainer>
 
-        {/* Mini Player (Bottom Bar) */}
+        {/* Mini Player (Persistent Bottom Bar) */}
         {currentTrack && (
           <MiniPlayer
             currentTrack={currentTrack}
@@ -179,7 +119,7 @@ export default function App() {
           />
         )}
 
-        {/* Full Screen Player */}
+        {/* Full Screen Player Modal */}
         <PlayerModal
           visible={isModalVisible}
           onClose={() => setIsModalVisible(false)}
@@ -202,7 +142,7 @@ export default function App() {
           formatTime={formatTime}
         />
 
-        {/* Speed & Pitch Controls */}
+        {/* Speed & Pitch Controls Modal */}
         <FXModal
           visible={isFXModalVisible}
           onClose={() => setIsFXModalVisible(false)}
@@ -213,12 +153,12 @@ export default function App() {
           colors={colors}
         />
 
-        {/* Sleep Timer Settings */}
+        {/* Sleep Timer Settings Modal */}
         <SleepModal
           visible={isSleepModalVisible}
           onClose={() => setIsSleepModalVisible(false)}
           onSetTimer={(m) => {
-            store.setSleepTimerSeconds(m * 60);
+            setTimer(m);
             setIsSleepModalVisible(false);
           }}
           colors={colors}

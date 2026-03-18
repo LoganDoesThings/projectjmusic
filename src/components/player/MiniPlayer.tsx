@@ -7,8 +7,8 @@ import {
   Image 
 } from 'react-native';
 import { Play, Pause, SkipForward, Music } from 'lucide-react-native';
-import { Track } from '../types';
-import { Colors } from '../theme/colors';
+import { Track } from '../../types';
+import { Colors } from '../../theme/colors';
 
 // ============================================================================
 // Props Interface

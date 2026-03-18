@@ -103,24 +103,27 @@ export const useMusicStore = create<MusicState>((set, get) => ({
     if (index < 0 || index >= trackList.length) return;
 
     try {
-      // In expo-audio, we create a new player for the source
-      // If there's an existing player, we should stop/remove it
+      // 1. Clean up existing sound instance before creating a new one
       if (currentSound) {
         currentSound.pause();
+        // Note: expo-audio doesn't have an explicit 'unload' for the player instance itself,
+        // but we ensure it's paused. Re-assigning 'sound' will help with GC.
       }
       
-      const newPlayer = createAudioPlayer(trackList[index].uri);
+      const track = trackList[index];
+      const newPlayer = createAudioPlayer(track.uri);
       
-      // Configure initial settings
+      // 2. Configure initial settings
       newPlayer.playbackRate = playbackSpeed;
       newPlayer.shouldCorrectPitch = true;
       
-      // Setup listeners
+      // 3. Setup listeners
       newPlayer.addListener('playingChange', (isPlaying) => {
         set({ isPlaying });
       });
 
       newPlayer.addListener('statusChange', (status) => {
+        // Only update progress if we're not actively seeking to avoid UI jitter
         if (!get().isSeeking) {
           set({ 
             playbackPosition: status.currentTime, 
@@ -133,7 +136,8 @@ export const useMusicStore = create<MusicState>((set, get) => ({
         }
       });
 
-      const mainIndex = get().tracks.findIndex(t => t.id === trackList[index].id);
+      // Find the index in the master list to keep the store state consistent
+      const mainIndex = get().tracks.findIndex(t => t.id === track.id);
       
       set({ 
         sound: newPlayer, 
@@ -145,7 +149,7 @@ export const useMusicStore = create<MusicState>((set, get) => ({
       
     } catch (e) {
       console.error('Error in playTrack:', e);
-      Alert.alert('Playback Error', 'Could not play this track.');
+      Alert.alert('Playback Error', `Could not play track "${trackList[index]?.name || 'Unknown'}".`);
     }
   },
 
@@ -154,6 +158,7 @@ export const useMusicStore = create<MusicState>((set, get) => ({
     
     if (!sound) {
       if (tracks.length > 0) {
+        // Play first track if nothing is loaded
         await playTrack(0);
       }
       return;
@@ -169,20 +174,22 @@ export const useMusicStore = create<MusicState>((set, get) => ({
   skipNext: async () => {
     const { tracks, currentTrackIndex, isShuffle, playTrack } = get();
     if (tracks.length === 0) return;
+    
     if (currentTrackIndex === null) {
-        await playTrack(0);
-        return;
+      await playTrack(0);
+      return;
     }
 
     let nextIndex;
-    if (isShuffle) {
-      nextIndex = Math.floor(Math.random() * tracks.length);
-      if (tracks.length > 1 && nextIndex === currentTrackIndex) {
-          nextIndex = (nextIndex + 1) % tracks.length;
-      }
+    if (isShuffle && tracks.length > 1) {
+      // Pick a random track that isn't the current one
+      do {
+        nextIndex = Math.floor(Math.random() * tracks.length);
+      } while (nextIndex === currentTrackIndex);
     } else {
       nextIndex = (currentTrackIndex + 1) % tracks.length;
     }
+    
     await playTrack(nextIndex);
   },
 

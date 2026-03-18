@@ -8,7 +8,7 @@ import {
 } from 'react-native';
 import { Plus } from 'lucide-react-native';
 import Slider from '@react-native-community/slider';
-import { Colors } from '../theme/colors';
+import { Colors } from '../../theme/colors';
 
 // ============================================================================
 // Props Interface

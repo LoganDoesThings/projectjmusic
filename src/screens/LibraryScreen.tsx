@@ -14,18 +14,25 @@ import { Music, Plus, Globe } from 'lucide-react-native';
 import * as DocumentPicker from 'expo-document-picker';
 import { DEFAULT_FOLDER } from '../constants';
 import { useMusicStore } from '../store/useMusicStore';
-import { TrackItem } from '../components/TrackItem';
+import { TrackItem } from '../components/player/TrackItem';
 import { getColors } from '../theme/colors';
 import { Track } from '../types';
 import { createTrackId } from '../utils/createTrackId';
 import { getMetadata } from '../utils/metadata';
 
 // ============================================================================
+import { MainTabScreenProps } from '../types/navigation';
+
+// ============================================================================
 // Library Screen
 // ============================================================================
 // Displays the main list of songs. Allows users to add files from their device
 // or from a remote URL.
-export const LibraryScreen = ({ isDarkMode }: { isDarkMode: boolean }) => {
+interface LibraryScreenProps extends MainTabScreenProps<'Library'> {
+  isDarkMode: boolean;
+}
+
+export const LibraryScreen = ({ isDarkMode }: LibraryScreenProps) => {
   const store = useMusicStore();
   const colors = getColors(isDarkMode);
   

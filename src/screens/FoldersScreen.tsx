@@ -13,11 +13,17 @@ import { Folder, Plus } from 'lucide-react-native';
 import { useMusicStore } from '../store/useMusicStore';
 import { getColors } from '../theme/colors';
 
+import { FolderStackScreenProps } from '../types/navigation';
+
 // ============================================================================
 // Folders Screen
 // ============================================================================
 // Lists all custom folders/playlists created by the user.
-export const FoldersScreen = ({ navigation, isDarkMode }: any) => {
+interface FoldersScreenProps extends FolderStackScreenProps<'FoldersList'> {
+  isDarkMode: boolean;
+}
+
+export const FoldersScreen = ({ navigation, isDarkMode }: FoldersScreenProps) => {
   const store = useMusicStore();
   const colors = getColors(isDarkMode);
 
