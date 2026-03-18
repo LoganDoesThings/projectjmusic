@@ -14,7 +14,7 @@ Currently, the following versions of JMusic are supported with security updates:
 
 We take the security of JMusic seriously. If you believe you have found a security vulnerability, please do not report it via public GitHub issues. Instead, please follow the steps below:
 
-1. **Private Reporting:** Please send an email to **logan@example.com** (replace with your preferred security contact email) with the subject line `SECURITY VULNERABILITY: [Brief Description]`.
+1. **Private Reporting:** Please send an email to **logan.motta@icloud.com**  with the subject line `SECURITY VULNERABILITY: [Brief Description]`.
 2. **Details to Include:**
    - A detailed description of the vulnerability.
    - Steps to reproduce the issue (PoC).
