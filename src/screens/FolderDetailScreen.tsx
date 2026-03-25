@@ -16,6 +16,9 @@ import { getColors } from '../theme/colors';
 import { Track } from '../types';
 import { createTrackId } from '../utils/createTrackId';
 import { getMetadata } from '../utils/metadata';
+import { LIST_BOTTOM_PADDING, EMPTY_STATE_TOP_MARGIN } from '../constants';
+import { handleFileError } from '../utils/errorHandler';
+import { logError } from '../utils/logger';
 
 import { FolderStackScreenProps } from '../types/navigation';
 
@@ -70,9 +73,9 @@ export const FolderDetailScreen = ({ route, navigation, isDarkMode }: FolderDeta
         setIsLoading(false);
       }
     } catch (err) { 
-      console.error(err); 
       setIsLoading(false);
-      Alert.alert('Error', 'Failed to pick audio file.');
+      const errorMsg = handleFileError(err, 'audio file');
+      Alert.alert('File Error', errorMsg);
     }
   };
 
@@ -154,11 +157,11 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center'
   },
-  listContent: { paddingBottom: 100 },
+  listContent: { paddingBottom: LIST_BOTTOM_PADDING },
   emptyContainer: { 
     flex: 1, 
     justifyContent: 'center', 
     alignItems: 'center', 
-    marginTop: 120 
+    marginTop: EMPTY_STATE_TOP_MARGIN 
   },
 });

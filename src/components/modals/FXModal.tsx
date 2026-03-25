@@ -8,11 +8,22 @@ import {
 } from 'react-native';
 import { Plus } from 'lucide-react-native';
 import Slider from '@react-native-community/slider';
+import { MODAL_MAX_WIDTH } from '../../constants';
 import { Colors } from '../../theme/colors';
 
 // ============================================================================
 // Props Interface
 // ============================================================================
+/**
+ * Props for the FXModal component
+ * @property visible - Whether modal is displayed
+ * @property onClose - Callback to close modal
+ * @property playbackSpeed - Current playback speed (1.0 = normal)
+ * @property onSpeedChange - Callback when speed changes
+ * @property playbackPitch - Current pitch value
+ * @property onPitchChange - Callback when pitch changes
+ * @property colors - Color palette for theming
+ */
 interface FXModalProps {
   visible: boolean;
   onClose: () => void;
@@ -26,8 +37,11 @@ interface FXModalProps {
 // ============================================================================
 // FX Modal Component
 // ============================================================================
-// Controls for playback speed plus in-progress FX UI.
-// The equalizer remains a visual placeholder for now.
+/**
+ * FXModal Component
+ * Modal for controlling playback effects (speed, pitch)
+ * Currently features speed slider; pitch and equalizer are placeholders
+ */
 export const FXModal: React.FC<FXModalProps> = ({
   visible,
   onClose,
@@ -131,7 +145,7 @@ const styles = StyleSheet.create({
   },
   fxContent: { 
     width: '85%', 
-    maxWidth: 400,
+    maxWidth: MODAL_MAX_WIDTH,
     borderRadius: 25, 
     padding: 25, 
     elevation: 20,

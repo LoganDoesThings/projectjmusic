@@ -1,5 +1,7 @@
 import * as mm from 'music-metadata';
 import { Buffer } from 'buffer';
+import { MAX_FILE_SIZE_FOR_METADATA } from '../constants';
+import { logWarn } from './logger';
 
 const ASF_HEADER_OBJECT_GUID = Uint8Array.from([
   0x30, 0x26, 0xB2, 0x75, 0x8E, 0x66, 0xCF, 0x11,
@@ -71,11 +73,12 @@ const hasMalformedAsfHeader = (arrayBuffer: ArrayBuffer) => {
  * Fetches and parses ID3 tags (artist, album, artwork) from an audio file URI.
  * 
  * NOTE: This function reads the entire file into memory as an ArrayBuffer.
- * This works well for typical songs (3-10MB), but may cause memory issues 
- * on low-end devices with very large files (e.g., 100MB+ mixes).
+ * To prevent OOM errors on low-end devices, files larger than MAX_FILE_SIZE_FOR_METADATA (50MB)
+ * will be skipped and return empty metadata instead of attempting to parse.
+ * This works well for typical songs (3-10MB).
  * 
  * @param uri - The local or remote URI of the audio file.
- * @returns A promise resolving to the metadata object. Returns empty object on failure.
+ * @returns A promise resolving to the metadata object. Returns empty object on failure or for large files.
  */
 export const getMetadata = async (uri: string): Promise<Metadata> => {
   try {
@@ -84,6 +87,12 @@ export const getMetadata = async (uri: string): Promise<Metadata> => {
     // in the Expo environment (though specific file system permissions may apply).
     const response = await fetch(uri);
     const blob = await response.blob();
+    
+    // 1b. Check file size to prevent OOM errors on large files
+    if (blob.size > MAX_FILE_SIZE_FOR_METADATA) {
+      logWarn('getMetadata', `File exceeds maximum size (${blob.size} bytes > ${MAX_FILE_SIZE_FOR_METADATA} bytes), skipping metadata extraction`, { uri });
+      return {};
+    }
     
     // 2. Convert Blob to ArrayBuffer
     // We need an ArrayBuffer for the music-metadata-browser library to parse.
@@ -103,7 +112,7 @@ export const getMetadata = async (uri: string): Promise<Metadata> => {
     // Guard against malformed ASF headers that can hang vulnerable file-type versions
     // during parser-based format detection inside music-metadata.
     if (hasMalformedAsfHeader(arrayBuffer)) {
-      console.warn(`Skipping metadata parsing for malformed ASF input: ${uri}`);
+      logWarn('getMetadata', `Skipping metadata parsing for malformed ASF input`, { uri });
       return {};
     }
 
@@ -132,7 +141,7 @@ export const getMetadata = async (uri: string): Promise<Metadata> => {
   } catch (error) {
     // If anything goes wrong (network error, corrupt file, out of memory), 
     // we log it and return an empty object so the app doesn't crash.
-    console.warn(`Error parsing metadata for ${uri}:`, error);
+    logWarn('getMetadata', `Error parsing metadata for ${uri}`, error);
     return {};
   }
 };

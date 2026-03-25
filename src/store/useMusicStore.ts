@@ -2,8 +2,10 @@ import { create } from 'zustand';
 import { createAudioPlayer, AudioPlayer } from 'expo-audio';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Alert } from 'react-native';
-import { DEFAULT_FOLDER } from '../constants';
+import { DEFAULT_FOLDER, SKIP_BACK_THRESHOLD, DEFAULT_PLAYBACK_SPEED, DEFAULT_PLAYBACK_PITCH } from '../constants';
 import { Track, RepeatMode } from '../types';
+import { handlePlaybackError, handleStorageError } from '../utils/errorHandler';
+import { logError } from '../utils/logger';
 
 // ============================================================================
 // Music Store Interface
@@ -56,10 +58,14 @@ export const useMusicStore = create<MusicState>((set, get) => ({
   playbackPosition: 0,
   playbackDuration: 0,
   isSeeking: false,
-  playbackSpeed: 1.0,
-  playbackPitch: 1.0,
+  playbackSpeed: DEFAULT_PLAYBACK_SPEED,
+  playbackPitch: DEFAULT_PLAYBACK_PITCH,
   sleepTimerSeconds: null,
 
+  /**
+   * Load persisted tracks and folders from AsyncStorage
+   * Called on app initialization to restore user's library
+   */
   loadData: async () => {
     try {
       const storedTracks = await AsyncStorage.getItem('tracks');
@@ -72,10 +78,16 @@ export const useMusicStore = create<MusicState>((set, get) => ({
         set({ folders: JSON.parse(storedFolders) });
       }
     } catch (e) {
-      console.error('Failed to load data from storage', e);
+      const errorMsg = handleStorageError(e, 'Loading tracks and folders');
+      Alert.alert('Load Error', errorMsg);
     }
   },
 
+  /**
+   * Save tracks and folders to AsyncStorage
+   * @param updatedTracks - The tracks to persist
+   * @param updatedFolders - Optional folders to persist
+   */
   saveData: async (updatedTracks: Track[], updatedFolders?: string[]) => {
     try {
       await AsyncStorage.setItem('tracks', JSON.stringify(updatedTracks));
@@ -83,20 +95,35 @@ export const useMusicStore = create<MusicState>((set, get) => ({
         await AsyncStorage.setItem('folders', JSON.stringify(updatedFolders));
       }
     } catch (e) {
-      console.error('Failed to save data to storage', e);
+      const errorMsg = handleStorageError(e, 'Saving tracks and folders');
+      logError('useMusicStore.saveData', errorMsg);
     }
   },
 
+  /**
+   * Set tracks array and persist to storage
+   * @param tracks - New tracks array
+   */
   setTracks: (tracks) => {
     set({ tracks });
     get().saveData(tracks);
   },
 
+  /**
+   * Set folders array and persist to storage
+   * @param folders - New folders array
+   */
   setFolders: (folders) => {
     set({ folders });
     get().saveData(get().tracks, folders);
   },
 
+  /**
+   * Play a track by index with proper cleanup and setup
+   * Creates audio player, attaches listeners, and updates UI state
+   * @param index - Index in the trackList to play
+   * @param trackList - Optional specific track list (defaults to store tracks for context-aware playing)
+   */
   playTrack: async (index: number, trackList = get().tracks) => {
     const { sound: currentSound, playbackSpeed } = get();
     
@@ -148,11 +175,16 @@ export const useMusicStore = create<MusicState>((set, get) => ({
       newPlayer.play();
       
     } catch (e) {
-      console.error('Error in playTrack:', e);
-      Alert.alert('Playback Error', `Could not play track "${trackList[index]?.name || 'Unknown'}".`);
+      const trackName = trackList[index]?.name || 'Unknown';
+      const errorMsg = handlePlaybackError(e, trackName);
+      Alert.alert('Playback Error', errorMsg);
     }
   },
 
+  /**
+   * Toggle between play and pause
+   * If no track is loaded, plays the first track in the library
+   */
   togglePlayPause: async () => {
     const { sound, isPlaying, tracks, playTrack } = get();
     
@@ -171,6 +203,10 @@ export const useMusicStore = create<MusicState>((set, get) => ({
     }
   },
 
+  /**
+   * Skip to the next track
+   * Respects shuffle mode if enabled
+   */
   skipNext: async () => {
     const { tracks, currentTrackIndex, isShuffle, playTrack } = get();
     if (tracks.length === 0) return;
@@ -193,11 +229,15 @@ export const useMusicStore = create<MusicState>((set, get) => ({
     await playTrack(nextIndex);
   },
 
+  /**
+   * Skip to previous track or restart current if playback position > 3 seconds
+   * Seeks to start if threshold is exceeded instead of skipping
+   */
   skipBack: async () => {
     const { tracks, currentTrackIndex, playTrack, playbackPosition } = get();
     if (tracks.length === 0 || currentTrackIndex === null) return;
     
-    if (playbackPosition > 3000) {
+    if (playbackPosition > SKIP_BACK_THRESHOLD) {
         const { sound } = get();
         if (sound) {
             sound.seekTo(0);
@@ -210,6 +250,10 @@ export const useMusicStore = create<MusicState>((set, get) => ({
     await playTrack(prevIndex);
   },
 
+  /**
+   * Handle track finish based on repeat mode
+   * Restarts current track if repeat mode is 'one', otherwise skips to next
+   */
   handleTrackFinish: async () => {
     const { repeatMode, currentTrackIndex, skipNext, sound } = get();
     if (repeatMode === 'one' && currentTrackIndex !== null && sound) {
@@ -220,6 +264,9 @@ export const useMusicStore = create<MusicState>((set, get) => ({
     }
   },
 
+  /**
+   * Cycle through repeat modes: none → one → all → none
+   */
   cycleRepeatMode: () => {
     const modes: RepeatMode[] = ['none', 'one', 'all'];
     const { repeatMode } = get();
@@ -227,10 +274,17 @@ export const useMusicStore = create<MusicState>((set, get) => ({
     set({ repeatMode: nextMode });
   },
 
+  /**
+   * Toggle shuffle mode on/off
+   */
   toggleShuffle: () => {
       set((state) => ({ isShuffle: !state.isShuffle }));
   },
 
+  /**
+   * Set playback speed and apply to current audio player
+   * @param speed - Playback speed multiplier (e.g., 0.5, 1.0, 2.0)
+   */
   setPlaybackSpeed: async (speed) => {
     const { sound } = get();
     set({ playbackSpeed: speed });
@@ -239,10 +293,18 @@ export const useMusicStore = create<MusicState>((set, get) => ({
     }
   },
 
+  /**
+   * Set playback pitch (note: currently stored but not applied to audio player)
+   * @param pitch - Pitch adjustment value
+   */
   setPlaybackPitch: (pitch) => {
       set({ playbackPitch: pitch });
   },
 
+  /**
+   * Seek to specific position in the current track
+   * @param position - Position in milliseconds
+   */
   onSeek: async (position) => {
     const { sound } = get();
     if (sound) {
@@ -253,8 +315,16 @@ export const useMusicStore = create<MusicState>((set, get) => ({
 
   setIsSeeking: (isSeeking) => set({ isSeeking }),
 
+  /**
+   * Set sleep timer duration in seconds
+   * @param seconds - Seconds remaining before playback stops (null to disable)
+   */
   setSleepTimerSeconds: (seconds) => set({ sleepTimerSeconds: seconds }),
 
+  /**
+   * Toggle favorite status for a track
+   * @param id - Track ID to toggle
+   */
   toggleFavorite: (id: string) => {
     const { tracks, saveData } = get();
     const updated = tracks.map(t => 

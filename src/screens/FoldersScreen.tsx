@@ -12,6 +12,7 @@ import {
 import { Folder, Plus } from 'lucide-react-native';
 import { useMusicStore } from '../store/useMusicStore';
 import { getColors } from '../theme/colors';
+import { FOLDERS_GRID_MAX_WIDTH, EMPTY_STATE_TOP_MARGIN, MODAL_MAX_WIDTH } from '../constants';
 
 import { FolderStackScreenProps } from '../types/navigation';
 
@@ -165,7 +166,7 @@ const styles = StyleSheet.create({
     width: '85%', 
     padding: 20, 
     borderRadius: 15,
-    maxWidth: 400
+    maxWidth: MODAL_MAX_WIDTH
   },
   modalTitle: { fontSize: 18, fontWeight: 'bold', marginBottom: 15 },
   input: { borderWidth: 1, borderRadius: 8, padding: 12, marginBottom: 20 },

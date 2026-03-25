@@ -22,6 +22,7 @@ import { useSleepTimer } from './src/hooks/useSleepTimer';
 import { AppNavigator } from './src/navigation/AppNavigator';
 
 // Components
+import { ErrorBoundary } from './src/components/ErrorBoundary';
 import { MiniPlayer } from './src/components/player/MiniPlayer';
 import { PlayerModal } from './src/components/modals/PlayerModal';
 import { FXModal } from './src/components/modals/FXModal';
@@ -62,15 +63,16 @@ export default function App() {
 
   // --- Render ---
   return (
-    <SafeAreaProvider>
-      <SafeAreaView style={[styles.container, { backgroundColor: colors.bg }]}>
-        <StatusBar 
-          barStyle={isDarkMode ? 'light-content' : 'dark-content'} 
-          backgroundColor={colors.bg} 
-        />
-        
-        {/* Top Header Bar */}
-        <View style={styles.header}>
+    <ErrorBoundary>
+      <SafeAreaProvider>
+        <SafeAreaView style={[styles.container, { backgroundColor: colors.bg }]}>
+          <StatusBar 
+            barStyle={isDarkMode ? 'light-content' : 'dark-content'} 
+            backgroundColor={colors.bg} 
+          />
+          
+          {/* Top Header Bar */}
+          <View style={styles.header}>
           <View>
             <Text style={[styles.title, { color: colors.text }]}>JMusic</Text>
           </View>
@@ -163,8 +165,9 @@ export default function App() {
           }}
           colors={colors}
         />
-      </SafeAreaView>
-    </SafeAreaProvider>
+        </SafeAreaView>
+      </SafeAreaProvider>
+    </ErrorBoundary>
   );
 }
 

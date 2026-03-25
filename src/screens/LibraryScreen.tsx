@@ -12,13 +12,16 @@ import {
 } from 'react-native';
 import { Music, Plus, Globe } from 'lucide-react-native';
 import * as DocumentPicker from 'expo-document-picker';
-import { DEFAULT_FOLDER } from '../constants';
+import { DEFAULT_FOLDER, LIST_BOTTOM_PADDING, EMPTY_STATE_TOP_MARGIN, MODAL_MAX_WIDTH } from '../constants';
 import { useMusicStore } from '../store/useMusicStore';
 import { TrackItem } from '../components/player/TrackItem';
 import { getColors } from '../theme/colors';
 import { Track } from '../types';
 import { createTrackId } from '../utils/createTrackId';
 import { getMetadata } from '../utils/metadata';
+import { handleFileError, handleNetworkError } from '../utils/errorHandler';
+import { logError } from '../utils/logger';
+import { validateAudioUrl } from '../utils/urlValidator';
 
 // ============================================================================
 import { MainTabScreenProps } from '../types/navigation';
@@ -80,30 +83,34 @@ export const LibraryScreen = ({ isDarkMode }: LibraryScreenProps) => {
         setIsLoading(false);
       }
     } catch (err) { 
-      console.error('Error picking document:', err);
       setIsLoading(false);
-      Alert.alert('Error', 'Failed to pick audio file.');
+      const errorMsg = handleFileError(err, 'audio file');
+      Alert.alert('File Error', errorMsg);
     }
   };
 
   // --- URL Adding Logic ---
 
   const addFromUrl = async () => {
-    // Basic validation
-    if (!urlInput.trim()) return;
+    // Validate URL format and content
+    const validatedUrl = validateAudioUrl(urlInput);
+    if (!validatedUrl) {
+      Alert.alert('Invalid URL', 'Please enter a valid URL (e.g., https://example.com/song.mp3)');
+      return;
+    }
     
     setIsLoading(true);
     try {
       // Try to fetch metadata first to verify the link works
-      const metadata = await getMetadata(urlInput);
+      const metadata = await getMetadata(validatedUrl);
       
       // Fallback name if none found in metadata or URL
-      const name = urlInput.split('/').pop()?.split('?')[0] || 'Remote Track';
+      const name = validatedUrl.split('/').pop()?.split('?')[0] || 'Remote Track';
       
       const newTrack: Track = {
         id: createTrackId(),
         name: name,
-        uri: urlInput,
+        uri: validatedUrl,
         folder: DEFAULT_FOLDER,
         ...metadata
       };
@@ -114,7 +121,8 @@ export const LibraryScreen = ({ isDarkMode }: LibraryScreenProps) => {
       setUrlInput('');
       setIsUrlModalVisible(false);
     } catch (err) {
-      Alert.alert('Error', 'Could not add track from URL. Please check the link.');
+      const errorMsg = handleNetworkError(err, validatedUrl);
+      Alert.alert('Network Error', errorMsg);
     } finally {
         setIsLoading(false);
     }
@@ -256,12 +264,12 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center'
   },
-  listContent: { paddingBottom: 100 },
+  listContent: { paddingBottom: LIST_BOTTOM_PADDING },
   emptyContainer: { 
     flex: 1, 
     justifyContent: 'center', 
     alignItems: 'center', 
-    marginTop: 120 
+    marginTop: EMPTY_STATE_TOP_MARGIN 
   },
   modalOverlay: { 
     flex: 1, 
@@ -273,7 +281,7 @@ const styles = StyleSheet.create({
     width: '85%', 
     padding: 20, 
     borderRadius: 15,
-    maxWidth: 500,
+    maxWidth: MODAL_MAX_WIDTH,
   },
   modalTitle: { fontSize: 18, fontWeight: 'bold', marginBottom: 5 },
   input: { borderWidth: 1, borderRadius: 8, padding: 12, marginBottom: 20 },

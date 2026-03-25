@@ -22,13 +22,35 @@ import {
   Heart
 } from 'lucide-react-native';
 import Slider from '@react-native-community/slider';
-import { DEFAULT_FOLDER } from '../../constants';
+import { DEFAULT_FOLDER, TABLET_BREAKPOINT, MAX_ARTWORK_SIZE, TALL_DEVICE_HEIGHT, SLIDER_HEIGHT } from '../../constants';
 import { Track, RepeatMode } from '../../types';
 import { Colors } from '../../theme/colors';
 
 // ============================================================================
 // Props Interface
 // ============================================================================
+/**
+ * Props for the PlayerModal component
+ * @property visible - Whether modal is displayed
+ * @property onClose - Callback to close modal
+ * @property currentTrack - Currently playing track or null
+ * @property isPlaying - Whether audio is currently playing
+ * @property onTogglePlay - Callback for play/pause toggle
+ * @property onSkipNext - Callback to skip to next track
+ * @property onSkipBack - Callback to skip to previous track
+ * @property playbackPosition - Current playback position in ms
+ * @property playbackDuration - Total duration of track in ms
+ * @property onSeek - Callback when user seeks to position
+ * @property onSeeking - Callback while user is dragging slider
+ * @property isShuffle - Whether shuffle mode is enabled
+ * @property onToggleShuffle - Callback to toggle shuffle
+ * @property repeatMode - Current repeat mode (none/one/all)
+ * @property onCycleRepeat - Callback to cycle through repeat modes
+ * @property onOpenFX - Callback to open FX/effects modal
+ * @property onToggleFavorite - Callback to toggle favorite status
+ * @property colors - Color palette for theming
+ * @property formatTime - Function to format milliseconds to MM:SS
+ */
 interface PlayerModalProps {
   visible: boolean;
   onClose: () => void;
@@ -54,7 +76,11 @@ interface PlayerModalProps {
 // ============================================================================
 // Player Modal Component
 // ============================================================================
-// The full-screen player view showing album art, controls, and progress.
+/**
+ * PlayerModal Component
+ * Full-screen player view with album art, playback controls, progress slider,
+ * and quick access to repeat/shuffle/FX modes
+ */
 export const PlayerModal: React.FC<PlayerModalProps> = ({
   visible,
   onClose,
@@ -79,12 +105,12 @@ export const PlayerModal: React.FC<PlayerModalProps> = ({
   // We use the window width to calculate the album art size dynamically
   const { width, height } = useWindowDimensions();
   
-  // Calculate optimal art size based on screen width, maxing out at 350px
+  // Calculate optimal art size based on screen width, maxing out at MAX_ARTWORK_SIZE
   // or 75% of the screen width for smaller devices.
-  const artSize = width > 500 ? 350 : width * 0.75;
+  const artSize = width > TABLET_BREAKPOINT ? MAX_ARTWORK_SIZE : width * 0.75;
   
   // Dynamic top padding to ensure the header doesn't hit the status bar too hard
-  const topPadding = height > 800 ? 20 : 0;
+  const topPadding = height > TALL_DEVICE_HEIGHT ? 20 : 0;
 
   return (
     <Modal visible={visible} animationType="slide" onRequestClose={onClose}>
@@ -159,7 +185,7 @@ export const PlayerModal: React.FC<PlayerModalProps> = ({
         {/* --- Progress Slider --- */}
         <View style={styles.sliderContainer}>
           <Slider
-            style={{ width: '100%', height: 40 }}
+            style={{ width: '100%', height: SLIDER_HEIGHT }}
             minimumValue={0}
             maximumValue={playbackDuration}
             value={playbackPosition}

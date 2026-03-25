@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useCallback } from 'react';
 import { 
   StyleSheet, 
   Text, 
@@ -15,6 +15,15 @@ import { Colors } from '../../theme/colors';
 // ============================================================================
 // Props Interface
 // ============================================================================
+/**
+ * Props for the TrackItem component
+ * @property item - The track data to display
+ * @property isCurrent - Whether this track is currently playing
+ * @property colors - Color palette for theming
+ * @property onPress - Callback when track is pressed (play action)
+ * @property onDelete - Callback when delete button is pressed
+ * @property onToggleFavorite - Callback when favorite heart is pressed
+ */
 interface TrackItemProps {
   item: Track;
   isCurrent: boolean;
@@ -27,8 +36,13 @@ interface TrackItemProps {
 // ============================================================================
 // Track Item Component
 // ============================================================================
-// A single row in the song list representing a track.
-export const TrackItem: React.FC<TrackItemProps> = ({ 
+/**
+ * TrackItem Component
+ * Displays a single track row with play button, metadata, and action buttons
+ * Shows visual indicator when track is currently playing
+ * Memoized for performance - only re-renders if track, isCurrent, or colors change
+ */
+const TrackItemComponent: React.FC<TrackItemProps> = ({ 
   item, 
   isCurrent, 
   colors, 
@@ -37,7 +51,7 @@ export const TrackItem: React.FC<TrackItemProps> = ({
   onToggleFavorite
 }) => {
   
-  const handleDelete = () => {
+  const handleDelete = useCallback(() => {
       Alert.alert(
           "Delete Track",
           `Are you sure you want to remove "${item.name}" from your library?`,
@@ -46,7 +60,7 @@ export const TrackItem: React.FC<TrackItemProps> = ({
               { text: "Delete", style: "destructive", onPress: onDelete }
           ]
       );
-  };
+  }, [item.name, onDelete]);
 
   return (
     <TouchableOpacity 
@@ -119,6 +133,22 @@ export const TrackItem: React.FC<TrackItemProps> = ({
     </TouchableOpacity>
   );
 };
+
+/**
+ * Memoized TrackItem component
+ * Prevents unnecessary re-renders when parent re-renders but track data hasn't changed
+ */
+export const TrackItem = React.memo(
+  TrackItemComponent,
+  (prevProps, nextProps) => {
+    // Return true if props are equal (don't re-render)
+    return (
+      prevProps.item.id === nextProps.item.id &&
+      prevProps.isCurrent === nextProps.isCurrent &&
+      prevProps.colors === nextProps.colors
+    );
+  }
+);
 
 const styles = StyleSheet.create({
   container: { 

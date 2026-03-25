@@ -9,6 +9,7 @@ import { Music, Heart } from 'lucide-react-native';
 import { useMusicStore } from '../store/useMusicStore';
 import { TrackItem } from '../components/player/TrackItem';
 import { getColors } from '../theme/colors';
+import { LIST_BOTTOM_PADDING, EMPTY_STATE_TOP_MARGIN } from '../constants';
 
 import { MainTabScreenProps } from '../types/navigation';
 
@@ -86,11 +87,11 @@ const styles = StyleSheet.create({
   },
   title: { fontSize: 28, fontWeight: 'bold' },
   subtitle: { fontSize: 14, marginTop: 2 },
-  listContent: { paddingBottom: 100 },
+  listContent: { paddingBottom: LIST_BOTTOM_PADDING },
   emptyContainer: { 
     flex: 1, 
     justifyContent: 'center', 
     alignItems: 'center', 
-    marginTop: 120 
+    marginTop: EMPTY_STATE_TOP_MARGIN 
   },
 });

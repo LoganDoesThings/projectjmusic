@@ -6,11 +6,19 @@ import {
   TouchableOpacity, 
   Modal 
 } from 'react-native';
+import { MAX_ARTWORK_SIZE } from '../../constants';
 import { Colors } from '../../theme/colors';
 
 // ============================================================================
 // Props Interface
 // ============================================================================
+/**
+ * Props for the SleepModal component
+ * @property visible - Whether modal is displayed
+ * @property onClose - Callback to close modal
+ * @property onSetTimer - Callback with selected minutes
+ * @property colors - Color palette for theming
+ */
 interface SleepModalProps {
   visible: boolean;
   onClose: () => void;
@@ -21,7 +29,11 @@ interface SleepModalProps {
 // ============================================================================
 // Sleep Timer Modal
 // ============================================================================
-// Allows the user to select a duration after which playback will stop.
+/**
+ * SleepModal Component
+ * Provides predefined sleep timer durations (10, 20, 30, 60, 90 minutes)
+ * User can select a duration to automatically stop playback after
+ */
 export const SleepModal: React.FC<SleepModalProps> = ({
   visible,
   onClose,
@@ -93,7 +105,7 @@ const styles = StyleSheet.create({
   },
   modalContent: { 
     width: '80%', 
-    maxWidth: 350,
+    maxWidth: MAX_ARTWORK_SIZE,
     borderRadius: 25, 
     padding: 25, 
     elevation: 20,
