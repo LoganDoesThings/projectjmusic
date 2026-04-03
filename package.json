@@ -73,7 +73,7 @@
   },
   "devDependencies": {
     "@types/react": "~19.2.2",
-    "electron": "^41.0.2",
+    "electron": "^41.1.0",
     "electron-builder": "^26.8.1",
     "typescript": "~5.9.2"
   },
